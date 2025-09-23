@@ -1,0 +1,1680 @@
+{% extends "base.html" %}
+
+{% block title %}Task Wizard - ARVLab{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i data-lucide="zap"></i> Task Creation Wizard</h3>
+                    <div class="progress mt-3" style="height: 8px;">
+                        <div class="progress-bar" role="progressbar" id="wizardProgress" style="width: 20%"></div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2">
+                        <small class="text-muted">Step <span id="currentStep">1</span> of 6</small>
+                        <small class="text-muted" id="stepDescription">Basic Information</small>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <form id="wizardForm">
+                        <!-- Step 1: Basic Information -->
+                        <div id="step1" class="wizard-step">
+                            <h4><i data-lucide="info"></i> Task Information</h4>
+                            <p class="text-muted mb-4">Let's start with the basic details about your prediction task.</p>
+                            
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Task Title *</label>
+                                <input type="text" class="form-control" id="title" name="title" required 
+                                       placeholder="e.g., Apple Stock Price Movement, Manchester United vs Liverpool">
+                                <div class="form-text">Choose a descriptive title that clearly identifies the event</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="domain" class="form-label">Domain Type *</label>
+                                <select class="form-select" id="domain" name="domain" required>
+                                    <option value="">Select domain type...</option>
+                                    <option value="stocks">Stocks & Financial Markets</option>
+                                    <option value="sports">Sports & Competitions</option>
+                                    <option value="lottery">Lottery & Random Draws</option>
+                                    <option value="other">Other Predictions</option>
+                                </select>
+                                <div class="form-text">This determines how outcomes are structured and targets are assigned</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Event Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3" 
+                                          placeholder="Describe what will happen and how it will be resolved..."></textarea>
+                                <div class="form-text">Provide context about the event and how the outcome will be determined</div>
+                            </div>
+
+                            <!-- Tasking Type Selection -->
+                            <div class="mb-4">
+                                <label class="form-label">Tasking Type *</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card pricing-option border-2" data-type="individual">
+                                            <div class="card-body text-center p-4">
+                                                <div class="mb-2">
+                                                    <i data-lucide="user" style="width: 32px; height: 32px; color: #6c757d;"></i>
+                                                </div>
+                                                <h6 class="fw-bold">Individual Tasking</h6>
+                                                <div class="h5 fw-bold text-primary">1 credit</div>
+                                                <p class="small text-muted mb-3">Perfect for personal practice and skill development</p>
+                                                <div class="small">
+                                                    <span class="badge bg-light text-dark">You have {{ user.tasking_credits }} credits</span>
+                                                </div>
+                                                {% if user.tasking_credits == 0 %}
+                                                <div class="alert alert-warning mt-2 small">
+                                                    <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
+                                                    <a href="/purchase-credits" class="alert-link">Purchase credits</a> to create individual taskings
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card pricing-option border-2" data-type="group">
+                                            <div class="card-body text-center p-4">
+                                                <div class="mb-2">
+                                                    <i data-lucide="users" style="width: 32px; height: 32px; color: #28a745;"></i>
+                                                </div>
+                                                <h6 class="fw-bold">Group Tasking</h6>
+                                                <div class="h5 fw-bold text-success">FREE</div>
+                                                <p class="small text-muted mb-3">Collaborate with others on shared prediction tasks</p>
+                                                <div class="small">
+                                                    <span class="badge bg-success-subtle text-success">Earn credits when others join!</span>
+                                                </div>
+                                                <div class="alert alert-info mt-2 small">
+                                                    <i data-lucide="gift" style="width: 14px; height: 14px;"></i>
+                                                    Earn 1 credit per participant who joins
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="tasking_type" name="tasking_type" value="individual">
+                                <div class="form-text">Individual taskings help you practice personally. Group taskings are free to create and you earn credits when others join!</div>
+                                
+                                <!-- Group Tasking Options (initially hidden) -->
+                                <div id="group_options" class="mt-3" style="display: none;">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Maximum Participants</label>
+                                            <select class="form-select" id="max_participants" name="max_participants">
+                                                <option value="">Unlimited</option>
+                                                <option value="5">5 participants</option>
+                                                <option value="10">10 participants</option>
+                                                <option value="15">15 participants</option>
+                                                <option value="20">20 participants</option>
+                                                <option value="25">25 participants</option>
+                                                <option value="50">50 participants</option>
+                                            </select>
+                                            <div class="form-text">Limit how many people can join this group (optional)</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if ai_enabled %}
+                            <div class="mt-3">
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="aiSuggestConfig">
+                                    <i data-lucide="zap"></i> Get AI Suggestions
+                                </button>
+                                <small class="text-muted ms-2">AI will analyze your trial and suggest improvements</small>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Step 2: Domain Configuration -->
+                        <div id="step2" class="wizard-step" style="display: none;">
+                            <h4><i data-lucide="settings"></i> <span id="step2Title">Domain Configuration</span></h4>
+                            <p class="text-muted mb-4" id="step2Description">Configure the specific settings for your chosen domain.</p>
+                            
+                            <!-- Sports Configuration -->
+                            <div id="sportsConfig" style="display: none;">
+                                <div class="alert alert-info">
+                                    <i data-lucide="info"></i> Sports trials support multiple teams/outcomes (2-20 possible winners). Perfect for tournaments, world cups, and multi-team competitions.
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="sports_type" class="form-label">Competition Type *</label>
+                                    <select class="form-select" id="sports_type" onchange="setSportsDefaults()">
+                                        <option value="">Select competition type</option>
+                                        <option value="match">Head-to-Head Match (2-3 outcomes)</option>
+                                        <option value="tournament">Tournament/World Cup (multiple teams)</option>
+                                        <option value="custom">Custom Competition</option>
+                                    </select>
+                                    <div class="form-text">Choose the type of sports competition to configure appropriate outcomes</div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6><i data-lucide="users"></i> Teams/Outcomes</h6>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addSportsOutcome()">
+                                            <i data-lucide="plus"></i> Add Team
+                                        </button>
+                                    </div>
+                                    
+                                    <div id="sportsOutcomes">
+                                        <!-- Dynamic sports outcome inputs will be generated here -->
+                                    </div>
+                                    
+                                    <div class="form-text mt-2">
+                                        <i data-lucide="info"></i> Add 2-20 teams or possible outcomes. Examples: team names, "Winner/Runner-up", "Gold/Silver/Bronze", etc.
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-body text-center">
+                                                <h5 class="text-primary" id="sportsOutcomeCount">0</h5>
+                                                <small class="text-muted">Total Teams/Outcomes</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-body text-center">
+                                                <h5 class="text-success" id="sportsTargetCount">51</h5>
+                                                <small class="text-muted">Available Targets</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Lottery Configuration -->
+                            <div id="lotteryConfig" style="display: none;">
+                                <div class="alert alert-info">
+                                    <i data-lucide="info"></i> Lottery trials require descriptions for each ball outcome
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="lottery_balls" class="form-label">Number of Balls/Numbers *</label>
+                                    <input type="number" class="form-control" id="lottery_balls" name="lottery_balls" 
+                                           min="2" max="20" value="5" placeholder="5">
+                                    <div class="form-text">How many possible outcomes (2-20). Each ball must have a description.</div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <h6><i data-lucide="edit-3"></i> Ball Descriptions *</h6>
+                                    <div class="alert alert-warning">
+                                        <i data-lucide="alert-triangle"></i> All ball descriptions are required before creating the trial
+                                    </div>
+                                    
+                                    <div id="ballDescriptions">
+                                        <!-- Dynamic ball description inputs will be generated here -->
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-body text-center">
+                                                <h5 class="text-primary" id="ballCount">5</h5>
+                                                <small class="text-muted">Total Balls</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-body text-center">
+                                                <h5 class="text-success" id="targetCount">51</h5>
+                                                <small class="text-muted">Available Targets</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Stocks/Other Configuration -->
+                            <div id="binaryConfig" style="display: none;">
+                                <div class="alert alert-info">
+                                    <i data-lucide="info"></i> Binary trials have two outcomes with automatically selected targets
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label for="binary_outcome_a_name" class="form-label">First Outcome *</label>
+                                        <input type="text" class="form-control" id="binary_outcome_a_name" name="outcome_a_name" 
+                                               placeholder="e.g., Stock Up, Yes, Higher">
+                                        <div class="form-text">Name for the first possible outcome</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="binary_outcome_b_name" class="form-label">Second Outcome *</label>
+                                        <input type="text" class="form-control" id="binary_outcome_b_name" name="outcome_b_name" 
+                                               placeholder="e.g., Stock Down, No, Lower">
+                                        <div class="form-text">Name for the second possible outcome</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-secondary mt-3">
+                                    <i data-lucide="target"></i> The system will automatically select distinctive targets for each outcome.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Target Assignment -->
+                        <div id="step3" class="wizard-step" style="display: none;">
+                            <h4><i data-lucide="zap"></i> Automatic Target Assignment</h4>
+                            <p class="text-muted mb-4">The system will intelligently select distinctive targets for optimal ARV results.</p>
+                            
+                            <!-- Auto-Selection Information -->
+                            <div class="alert alert-success">
+                                <i data-lucide="check-circle"></i> 
+                                <strong>Targets will be automatically selected when the trial is created.</strong>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h5><i data-lucide="target"></i> Selection Algorithm</h5>
+                                            <ul class="mb-0">
+                                                <li>Maximizes visual distinctiveness</li>
+                                                <li>Analyzes image characteristics</li>
+                                                <li>Ensures optimal discrimination</li>
+                                                <li>Maintains ARV trial integrity</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h5><i data-lucide="shield"></i> Benefits</h5>
+                                            <ul class="mb-0">
+                                                <li>Preserves participation eligibility</li>
+                                                <li>No manual selection required</li>
+                                                <li>Scientifically optimized</li>
+                                                <li>Prevents content exposure</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Timing -->
+                        <div id="step4" class="wizard-step" style="display: none;">
+                            <h4><i data-lucide="clock"></i> Event Timing</h4>
+                            <p class="text-muted mb-4">When will this event be resolved and results determined?</p>
+                            
+                            <div class="mb-3">
+                                <label for="result_time" class="form-label">Result Time (UTC) *</label>
+                                <input type="datetime-local" class="form-control" id="result_time" name="result_time" required>
+                                <div class="form-text">When the actual outcome will be known and the trial can be settled</div>
+                                {% if ai_enabled %}
+                                <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="aiAnalyzeTiming">
+                                    <i data-lucide="clock"></i> AI Timing Analysis
+                                </button>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6><i data-lucide="calendar"></i> Current Time (UTC)</h6>
+                                            <p class="mb-0" id="currentTime">--</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6><i data-lucide="clock"></i> Time Until Event</h6>
+                                            <p class="mb-0" id="timeUntilEvent">Select time above</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 5: Review -->
+                        <div id="step5" class="wizard-step" style="display: none;">
+                            <h4><i data-lucide="eye"></i> Review & Create</h4>
+                            <p class="text-muted mb-4">Review your trial configuration before creating it.</p>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6><i data-lucide="info"></i> Trial Details</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <p><strong>Title:</strong> <span id="reviewTitle">--</span></p>
+                                            <p><strong>Domain:</strong> <span id="reviewDomain">--</span></p>
+                                            <p><strong>Result Time:</strong> <span id="reviewTime">--</span></p>
+                                            <p><strong>Description:</strong> <span id="reviewDescription">--</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6><i data-lucide="target"></i> Outcomes & Targets</h6>
+                                        </div>
+                                        <div class="card-body" id="reviewOutcomes">
+                                            <!-- Dynamic outcome review will be inserted here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if ai_enabled %}
+                            <div class="mt-3">
+                                <button type="button" class="btn btn-outline-warning" id="aiAnalyzeViability">
+                                    <i data-lucide="search"></i> AI Viability Analysis
+                                </button>
+                                <small class="text-muted ms-2">Get AI assessment of trial quality and potential issues</small>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Step 6: Group Task Sharing Encouragement (only shown for group tasks) -->
+                        <div id="step6" class="wizard-step" style="display: none;">
+                            <div class="text-center mb-4">
+                                <div class="mb-3">
+                                    <i data-lucide="target" style="width: 80px; height: 80px; color: #667eea;"></i>
+                                </div>
+                                <h3 class="text-primary mb-2">Group Task Created Successfully!</h3>
+                                <p class="text-muted">Now let's maximize your results by sharing it!</p>
+                            </div>
+
+                            <!-- Benefits Grid -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-start">
+                                        <div class="bg-success bg-opacity-10 rounded-3 p-2 me-3 flex-shrink-0">
+                                            <i data-lucide="users" class="text-success"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">More Participants = Better Accuracy</h6>
+                                            <small class="text-muted">Larger groups provide more reliable consensus-driven predictions</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-start">
+                                        <div class="bg-warning bg-opacity-10 rounded-3 p-2 me-3 flex-shrink-0">
+                                            <i data-lucide="credit-card" class="text-warning"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">Earn 1 Credit Per Participant</h6>
+                                            <small class="text-muted">Every person who joins rewards you with a free tasking credit</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-start">
+                                        <div class="bg-info bg-opacity-10 rounded-3 p-2 me-3 flex-shrink-0">
+                                            <i data-lucide="trending-up" class="text-info"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">Enhanced Signal Quality</h6>
+                                            <small class="text-muted">Group dynamics improve remote viewing signal clarity</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-start">
+                                        <div class="bg-primary bg-opacity-10 rounded-3 p-2 me-3 flex-shrink-0">
+                                            <i data-lucide="shield-check" class="text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">Scientific Validation</h6>
+                                            <small class="text-muted">Multiple participants provide statistical confidence</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Share URL -->
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Share this link:</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="shareUrl" readonly>
+                                    <button class="btn btn-outline-primary" type="button" onclick="copyShareUrl()">
+                                        <i data-lucide="copy" class="me-1"></i>Copy
+                                    </button>
+                                </div>
+                                <small class="text-muted">Anyone with this link can view and join your group task</small>
+                            </div>
+
+                            <!-- Quick Share Buttons -->
+                            <div class="d-flex flex-wrap gap-2 mb-4 justify-content-center">
+                                <button class="btn btn-primary btn-sm" onclick="shareViaEmail()">
+                                    <i data-lucide="mail" class="me-1"></i>Share via Email
+                                </button>
+                                <button class="btn btn-outline-primary btn-sm" onclick="shareViaTwitter()">
+                                    <i data-lucide="twitter" class="me-1"></i>Share on Twitter
+                                </button>
+                                <button class="btn btn-outline-primary btn-sm" onclick="shareViaReddit()">
+                                    <i data-lucide="message-circle" class="me-1"></i>Share on Reddit
+                                </button>
+                            </div>
+
+                            <!-- Tips -->
+                            <div class="card border-0 bg-light">
+                                <div class="card-body p-3">
+                                    <h6 class="card-title mb-2"><i data-lucide="lightbulb" style="width: 16px; height: 16px;" class="me-1"></i>Sharing Tips</h6>
+                                    <ul class="list-unstyled small mb-0">
+                                        <li class="mb-1">• Share in ARV and remote viewing communities for experienced participants</li>
+                                        <li class="mb-1">• Include the task domain when describing your task</li>
+                                        <li class="mb-1">• Mention the result date to create urgency</li>
+                                        <li>• Emphasize collaborative research and earning potential for participants</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary" id="prevBtn" onclick="changeStep(-1)" disabled>
+                            <i data-lucide="chevron-left"></i> Previous
+                        </button>
+                        <div>
+                            <button type="button" class="btn btn-primary" id="nextBtn" onclick="changeStep(1)">
+                                Next <i data-lucide="chevron-right"></i>
+                            </button>
+                            <button type="button" class="btn btn-success" id="createBtn" onclick="createTrial()" style="display: none;">
+                                <i data-lucide="plus-circle"></i> Create Trial
+                            </button>
+                            <button type="button" class="btn btn-success" id="finishBtn" onclick="finishWizard()" style="display: none;">
+                                <i data-lucide="check-circle"></i> View Task
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentStep = 1;
+let totalSteps = 6;
+let availableTargets = {{ targets | tojson }};
+let aiEnabled = {{ ai_enabled | tojson }};
+
+// Initialize wizard
+document.addEventListener('DOMContentLoaded', function() {
+    updateCurrentTime();
+    setInterval(updateCurrentTime, 1000);
+    setupEventListeners();
+    if (typeof window.initializeLucideIcons === 'function') { window.initializeLucideIcons(); }
+});
+
+function setupEventListeners() {
+    // Domain change handler
+    document.getElementById('domain').addEventListener('change', function() {
+        updateStep2Configuration();
+    });
+    
+    // Lottery balls change handler
+    document.getElementById('lottery_balls').addEventListener('input', function() {
+        document.getElementById('ballCount').textContent = this.value;
+        generateBallDescriptionFields();
+        updateStep3Configuration();
+    });
+    
+    // Result time change handler
+    document.getElementById('result_time').addEventListener('change', function() {
+        updateTimeUntilEvent();
+    });
+    
+    // Setup pricing options
+    setupPricingOptions();
+    
+    // AI suggestion buttons
+    if (aiEnabled) {
+        setupAIButtons();
+    }
+    
+    // Form validation listeners
+    ['title', 'domain', 'result_time'].forEach(id => {
+        document.getElementById(id).addEventListener('input', validateCurrentStep);
+    });
+}
+
+function changeStep(direction) {
+    if (direction === 1 && !validateCurrentStep()) {
+        return;
+    }
+    
+    const newStep = currentStep + direction;
+    if (newStep < 1 || newStep > totalSteps) return;
+    
+    // Hide current step
+    document.getElementById(`step${currentStep}`).style.display = 'none';
+    
+    // Update current step
+    currentStep = newStep;
+    
+    // Show new step
+    document.getElementById(`step${currentStep}`).style.display = 'block';
+    
+    // Update progress
+    const progress = (currentStep / totalSteps) * 100;
+    document.getElementById('wizardProgress').style.width = progress + '%';
+    document.getElementById('currentStep').textContent = currentStep;
+    
+    // Update step description
+    const descriptions = {
+        1: 'Basic Information',
+        2: 'Domain Configuration', 
+        3: 'Target Selection',
+        4: 'Event Timing',
+        5: 'Review & Create',
+        6: 'Share Your Task'
+    };
+    document.getElementById('stepDescription').textContent = descriptions[currentStep];
+    
+    // Update buttons
+    document.getElementById('prevBtn').disabled = currentStep === 1 || currentStep === 6;
+    
+    // For individual tasks, show create button on step 5. For group tasks, create on step 5, finish on step 6
+    const taskingType = document.getElementById('tasking_type').value;
+    const isGroupTask = taskingType === 'group';
+    
+    document.getElementById('nextBtn').style.display = currentStep === 5 ? 'none' : 'inline-block';
+    document.getElementById('createBtn').style.display = currentStep === 5 ? 'inline-block' : 'none';
+    document.getElementById('finishBtn').style.display = currentStep === 6 && isGroupTask ? 'inline-block' : 'none';
+    
+    // Handle step-specific logic
+    if (currentStep === 2) {
+        updateStep2Configuration();
+    } else if (currentStep === 3) {
+        updateStep3Configuration();
+    } else if (currentStep === 5) {
+        updateReviewStep();
+    } else if (currentStep === 6) {
+        // Step 6 should only be shown for group tasks
+        const taskingType = document.getElementById('tasking_type').value;
+        if (taskingType !== 'group') {
+            // Skip step 6 for individual tasks
+            changeStep(-1);
+        }
+    }
+    
+    if (typeof window.initializeLucideIcons === 'function') { window.initializeLucideIcons(); }
+}
+
+function validateCurrentStep() {
+    if (currentStep === 1) {
+        const title = document.getElementById('title').value.trim();
+        const domain = document.getElementById('domain').value;
+        return title && domain;
+    } else if (currentStep === 2) {
+        const domain = document.getElementById('domain').value;
+        if (domain === 'sports') {
+            const sportsType = document.getElementById('sports_type').value;
+            if (!sportsType) return false;
+            
+            const outcomes = getSportsOutcomes();
+            return outcomes.length >= 2 && outcomes.length <= 20 && outcomes.every(outcome => outcome.trim() !== '');
+        } else if (domain === 'lottery') {
+            const balls = parseInt(document.getElementById('lottery_balls').value);
+            if (balls < 2 || balls > 20) return false;
+            
+            // Check that all ball descriptions are filled
+            for (let i = 1; i <= balls; i++) {
+                const desc = document.getElementById(`ball_desc_${i}`);
+                if (!desc || !desc.value.trim()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return true;
+    } else if (currentStep === 3) {
+        // Auto-selection mode - no validation needed
+        return true;
+    } else if (currentStep === 4) {
+        return document.getElementById('result_time').value;
+    }
+    return true;
+}
+
+function updateStep2Configuration() {
+    const domain = document.getElementById('domain').value;
+    
+    // Hide all configs
+    document.getElementById('sportsConfig').style.display = 'none';
+    document.getElementById('lotteryConfig').style.display = 'none';
+    document.getElementById('binaryConfig').style.display = 'none';
+    
+    // Show relevant config
+    if (domain === 'sports') {
+        document.getElementById('step2Title').textContent = 'Sports Configuration';
+        document.getElementById('step2Description').textContent = 'Define the teams, players, or outcomes for your sports event.';
+        document.getElementById('sportsConfig').style.display = 'block';
+        document.getElementById('sportsTargetCount').textContent = availableTargets.length;
+        
+        // Initialize with default match setup if no outcomes exist
+        const existingOutcomes = document.querySelectorAll('.sports-outcome-input');
+        if (existingOutcomes.length === 0) {
+            setTimeout(() => {
+                addSportsOutcomeInternal('Team A');
+                addSportsOutcomeInternal('Team B');
+            }, 100);
+        }
+    } else if (domain === 'lottery') {
+        document.getElementById('step2Title').textContent = 'Lottery Configuration';
+        document.getElementById('step2Description').textContent = 'Set the number of balls and provide descriptions for each outcome.';
+        document.getElementById('lotteryConfig').style.display = 'block';
+        document.getElementById('targetCount').textContent = availableTargets.length;
+        // Initial generation of ball description fields
+        setTimeout(generateBallDescriptionFields, 100);
+    } else {
+        document.getElementById('step2Title').textContent = 'Binary Configuration';
+        document.getElementById('step2Description').textContent = 'Your trial will have two outcomes (A and B).';
+        document.getElementById('binaryConfig').style.display = 'block';
+    }
+}
+
+function updateStep3Configuration() {
+    // Auto-selection mode only - no configuration needed
+}
+
+function autoSelectTargets() {
+    const domain = document.getElementById('domain').value;
+    const numTargets = domain === 'sports' ? 3 : 2;
+    const targetIds = ['target_a_id', 'target_b_id', 'target_c_id'];
+    
+    // Shuffle available targets
+    const shuffled = [...availableTargets].sort(() => 0.5 - Math.random());
+    
+    for (let i = 0; i < numTargets; i++) {
+        const select = document.getElementById(targetIds[i]);
+        if (select && shuffled[i]) {
+            select.value = shuffled[i].id;
+        }
+    }
+}
+
+function updateCurrentTime() {
+    const now = new Date();
+    document.getElementById('currentTime').textContent = now.toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
+}
+
+function updateTimeUntilEvent() {
+    const resultTime = document.getElementById('result_time').value;
+    if (!resultTime) {
+        document.getElementById('timeUntilEvent').textContent = 'Select time above';
+        return;
+    }
+    
+    const now = new Date();
+    const eventTime = new Date(resultTime);
+    const diff = eventTime - now;
+    
+    if (diff <= 0) {
+        document.getElementById('timeUntilEvent').textContent = 'Event is in the past';
+        document.getElementById('timeUntilEvent').className = 'mb-0 text-danger';
+    } else {
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        
+        let timeString = '';
+        if (days > 0) timeString += `${days}d `;
+        if (hours > 0) timeString += `${hours}h `;
+        timeString += `${minutes}m`;
+        
+        document.getElementById('timeUntilEvent').textContent = timeString;
+        document.getElementById('timeUntilEvent').className = 'mb-0 text-success';
+    }
+}
+
+function generateBallDescriptionFields() {
+    const ballsInput = document.getElementById('lottery_balls');
+    const container = document.getElementById('ballDescriptions');
+    
+    if (!ballsInput || !container) {
+        console.error('Required elements not found for lottery balls');
+        return;
+    }
+    
+    const ballsCount = parseInt(ballsInput.value) || 5;
+    console.log('Generating fields for', ballsCount, 'balls');
+    
+    // Clear existing fields
+    container.innerHTML = '';
+    
+    // Generate description fields for each ball
+    for (let i = 1; i <= ballsCount; i++) {
+        const fieldHtml = `
+            <div class="mb-3">
+                <label for="ball_desc_${i}" class="form-label">Ball ${i} Description *</label>
+                <input type="text" class="form-control" id="ball_desc_${i}" name="ball_desc_${i}" 
+                       placeholder="e.g., Stock price increases, Team wins, Number 7 drawn" required>
+                <div class="form-text">Describe what this outcome represents</div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', fieldHtml);
+    }
+    
+    console.log('Generated', ballsCount, 'ball description fields');
+}
+
+// Sports outcome management functions
+let sportsOutcomeIndex = 0;
+
+function setSportsDefaults() {
+    const sportsType = document.getElementById('sports_type').value;
+    const container = document.getElementById('sportsOutcomes');
+    
+    // Clear existing outcomes
+    container.innerHTML = '';
+    sportsOutcomeIndex = 0;
+    
+    if (sportsType === 'match') {
+        // Add default match outcomes
+        addSportsOutcomeInternal('Team A');
+        addSportsOutcomeInternal('Team B'); 
+        addSportsOutcomeInternal('Draw');
+    } else if (sportsType === 'tournament') {
+        // Add sample tournament teams
+        addSportsOutcomeInternal('Australia');
+        addSportsOutcomeInternal('India');
+        addSportsOutcomeInternal('England');
+        addSportsOutcomeInternal('New Zealand');
+    } else if (sportsType === 'custom') {
+        // Add two default outcomes for custom
+        addSportsOutcomeInternal('Winner');
+        addSportsOutcomeInternal('Runner-up');
+    }
+    
+    updateSportsOutcomeCount();
+}
+
+function addSportsOutcome() {
+    addSportsOutcomeInternal('');
+}
+
+function addSportsOutcomeInternal(defaultValue = '') {
+    const container = document.getElementById('sportsOutcomes');
+    sportsOutcomeIndex++;
+    
+    const outcomeHtml = `
+        <div class="sports-outcome-item mb-3" data-index="${sportsOutcomeIndex}">
+            <div class="input-group">
+                <input type="text" class="form-control sports-outcome-input" 
+                       id="sports_outcome_${sportsOutcomeIndex}" 
+                       name="sports_outcome_${sportsOutcomeIndex}"
+                       placeholder="Team or outcome name" 
+                       value="${defaultValue}"
+                       oninput="validateCurrentStep()">
+                <button type="button" class="btn btn-outline-danger" onclick="removeSportsOutcome(${sportsOutcomeIndex})" ${sportsOutcomeIndex <= 2 ? 'disabled' : ''}>
+                    <i data-lucide="trash-2"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', outcomeHtml);
+    updateSportsOutcomeCount();
+    
+    if (typeof window.initializeLucideIcons === 'function') { 
+        window.initializeLucideIcons(); 
+    }
+}
+
+function removeSportsOutcome(index) {
+    const outcomeElement = document.querySelector(`.sports-outcome-item[data-index="${index}"]`);
+    if (outcomeElement) {
+        outcomeElement.remove();
+        updateSportsOutcomeCount();
+        validateCurrentStep();
+    }
+}
+
+function updateSportsOutcomeCount() {
+    const outcomes = document.querySelectorAll('.sports-outcome-input');
+    const count = outcomes.length;
+    document.getElementById('sportsOutcomeCount').textContent = count;
+    
+    // Enable/disable remove buttons - keep minimum 2 outcomes
+    const removeButtons = document.querySelectorAll('.sports-outcome-item .btn-outline-danger');
+    removeButtons.forEach((btn, idx) => {
+        btn.disabled = count <= 2;
+    });
+    
+    // Check if we need to show warning about max outcomes
+    if (count >= 20) {
+        const addButton = document.querySelector('button[onclick="addSportsOutcome()"]');
+        if (addButton) {
+            addButton.disabled = true;
+            addButton.innerHTML = '<i data-lucide="alert-triangle"></i> Max 20 Teams';
+        }
+    } else {
+        const addButton = document.querySelector('button[onclick="addSportsOutcome()"]');
+        if (addButton) {
+            addButton.disabled = false;
+            addButton.innerHTML = '<i data-lucide="plus"></i> Add Team';
+        }
+    }
+    
+    if (typeof window.initializeLucideIcons === 'function') { 
+        window.initializeLucideIcons(); 
+    }
+}
+
+function getSportsOutcomes() {
+    const inputs = document.querySelectorAll('.sports-outcome-input');
+    const outcomes = [];
+    
+    inputs.forEach((input, index) => {
+        const value = input.value.trim();
+        if (value) {
+            outcomes.push(value);
+        }
+    });
+    
+    return outcomes;
+}
+
+function updateReviewStep() {
+    // Update review information
+    document.getElementById('reviewTitle').textContent = document.getElementById('title').value;
+    document.getElementById('reviewDomain').textContent = document.getElementById('domain').selectedOptions[0].textContent;
+    document.getElementById('reviewTime').textContent = document.getElementById('result_time').value.replace('T', ' ') + ' UTC';
+    document.getElementById('reviewDescription').textContent = document.getElementById('description').value || 'No description provided';
+    
+    // Update outcomes review
+    const domain = document.getElementById('domain').value;
+    const outcomesDiv = document.getElementById('reviewOutcomes');
+    
+    if (domain === 'sports') {
+        const sportsOutcomes = getSportsOutcomes();
+        let outcomesHtml = '';
+        sportsOutcomes.forEach((outcome, index) => {
+            outcomesHtml += `<p><strong>Team ${index + 1}:</strong> ${outcome}</p>`;
+        });
+        outcomesDiv.innerHTML = `
+            ${outcomesHtml}
+            <small class="text-muted">Targets: Auto-selected</small>
+        `;
+    } else if (domain === 'lottery') {
+        const balls = parseInt(document.getElementById('lottery_balls').value);
+        let ballDescriptions = '';
+        for (let i = 1; i <= balls; i++) {
+            const desc = document.getElementById(`ball_desc_${i}`);
+            if (desc) {
+                ballDescriptions += `<p><strong>Ball ${i}:</strong> ${desc.value}</p>`;
+            }
+        }
+        outcomesDiv.innerHTML = `
+            <p><strong>Number of Balls:</strong> ${balls}</p>
+            ${ballDescriptions}
+            <small class="text-muted">Targets: Auto-assigned</small>
+        `;
+    } else {
+        outcomesDiv.innerHTML = `
+            <p><strong>Outcome A:</strong> Binary outcome A</p>
+            <p><strong>Outcome B:</strong> Binary outcome B</p>
+            <small class="text-muted">Targets: Auto-selected</small>
+        `;
+    }
+}
+
+function createTrial() {
+    if (!validateCurrentStep()) {
+        alert('Please complete all required fields');
+        return;
+    }
+    
+    // Prepare form data
+    const formData = new FormData();
+    formData.append('title', document.getElementById('title').value);
+    formData.append('domain', document.getElementById('domain').value);
+    formData.append('event_spec', JSON.stringify({
+        description: document.getElementById('description').value || 'No description provided'
+    }));
+    formData.append('result_time', document.getElementById('result_time').value);
+    
+    // Always use auto-selection mode
+    formData.append('auto_select_targets', true);
+    
+    const domain = document.getElementById('domain').value;
+    
+    if (domain === 'sports') {
+        const sportsOutcomes = getSportsOutcomes();
+        formData.append('sports_outcomes_count', sportsOutcomes.length);
+        sportsOutcomes.forEach((outcome, index) => {
+            formData.append(`sports_outcome_${index}`, outcome);
+        });
+    } else if (domain === 'lottery') {
+        const balls = parseInt(document.getElementById('lottery_balls').value);
+        formData.append('lottery_balls', balls);
+        
+        // Add ball descriptions
+        for (let i = 1; i <= balls; i++) {
+            const desc = document.getElementById(`ball_desc_${i}`);
+            if (desc) {
+                formData.append(`ball_desc_${i}`, desc.value.trim());
+            }
+        }
+    }
+    // Binary outcomes will be handled automatically with auto-selection
+    
+    // Add tasking type and group options
+    const taskingType = document.getElementById('tasking_type').value;
+    formData.append('tasking_type', taskingType);
+    
+    if (taskingType === 'group') {
+        const maxParticipants = document.getElementById('max_participants').value;
+        if (maxParticipants) {
+            formData.append('max_participants', parseInt(maxParticipants));
+        }
+    }
+    
+    // Submit form
+    const createBtn = document.getElementById('createBtn');
+    createBtn.disabled = true;
+    createBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
+    
+    fetch('/create_trial', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.redirected) {
+            // For group tasks, show sharing step; for individual tasks, redirect immediately
+            if (taskingType === 'group') {
+                // Extract trial ID from redirect URL
+                const trialId = response.url.match(/\/trials\/(\d+)/)?.[1];
+                if (trialId) {
+                    setupSharingStep(trialId);
+                    changeStep(1); // Move to step 6
+                    createBtn.style.display = 'none';
+                } else {
+                    window.location.href = response.url;
+                }
+            } else {
+                window.location.href = response.url;
+            }
+        } else {
+            return response.text().then(text => {
+                throw new Error('Trial creation failed: ' + text);
+            });
+        }
+    })
+    .catch(error => {
+        alert('Error creating trial: ' + error.message);
+        createBtn.disabled = false;
+        createBtn.innerHTML = '<i data-lucide="plus-circle"></i> Create Trial';
+        if (typeof window.initializeLucideIcons === 'function') {
+            if (typeof window.initializeLucideIcons === 'function') { window.initializeLucideIcons(); }
+        }
+    });
+}
+
+function setupSharingStep(trialId) {
+    // Set up the sharing URL
+    const shareUrl = `${window.location.origin}/trials/${trialId}`;
+    document.getElementById('shareUrl').value = shareUrl;
+    
+    // Store trial ID for sharing functions
+    window.currentTrialId = trialId;
+    
+    // Store trial data for sharing functions
+    window.currentTrialData = {
+        title: document.getElementById('title').value,
+        domain: document.getElementById('domain').value
+    };
+}
+
+function finishWizard() {
+    if (window.currentTrialId) {
+        window.location.href = `/trials/${window.currentTrialId}`;
+    } else {
+        window.location.href = '/trials';
+    }
+}
+
+function copyShareUrl() {
+    const urlInput = document.getElementById('shareUrl');
+    urlInput.select();
+    urlInput.setSelectionRange(0, 99999);
+    
+    try {
+        document.execCommand('copy');
+        const btn = event.target.closest('button');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i data-lucide="check" class="me-1"></i>Copied!';
+        btn.classList.remove('btn-outline-primary');
+        btn.classList.add('btn-success');
+        
+        setTimeout(() => {
+            btn.innerHTML = originalHTML;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-outline-primary');
+            if (typeof window.initializeLucideIcons === 'function') {
+                if (typeof window.initializeLucideIcons === 'function') { window.initializeLucideIcons(); }
+            }
+        }, 2000);
+        if (typeof window.initializeLucideIcons === 'function') {
+            if (typeof window.initializeLucideIcons === 'function') { window.initializeLucideIcons(); }
+        }
+    } catch (err) {
+        alert('Failed to copy URL. Please copy manually.');
+    }
+}
+
+function shareViaEmail() {
+    const url = document.getElementById('shareUrl').value;
+    const trialData = window.currentTrialData || {};
+    const subject = encodeURIComponent(`Join my ARV group task: ${trialData.title || 'ARV Task'}`);
+    const body = encodeURIComponent(`I've created a group ARV task and would love for you to participate!
+
+Task: ${trialData.title || 'ARV Task'}
+Domain: ${trialData.domain || 'Prediction'}
+
+Join here: ${url}
+
+This is collaborative remote viewing research - the more participants, the better our consensus accuracy!`);
+    
+    window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+}
+
+function shareViaTwitter() {
+    const url = document.getElementById('shareUrl').value;
+    const trialData = window.currentTrialData || {};
+    const text = encodeURIComponent(`Join my ARV group task: "${trialData.title || 'ARV Task'}" - collaborative remote viewing research! More participants = better accuracy. #RemoteViewing #ARV #PredictionResearch`);
+    
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(url)}`, '_blank');
+}
+
+function shareViaReddit() {
+    const url = document.getElementById('shareUrl').value;
+    const trialData = window.currentTrialData || {};
+    const title = encodeURIComponent(`[Group Task] ${trialData.title || 'ARV Task'} - Collaborative ARV Research`);
+    
+    window.open(`https://reddit.com/submit?url=${encodeURIComponent(url)}&title=${title}`, '_blank');
+}
+
+// AI Suggestions Functions
+function setupAIButtons() {
+    // AI Config Suggestions
+    const aiConfigBtn = document.getElementById('aiSuggestConfig');
+    if (aiConfigBtn) {
+        aiConfigBtn.addEventListener('click', getAIConfigSuggestions);
+    }
+    
+    // AI Target Suggestions  
+    const aiTargetBtn = document.getElementById('aiSuggestTargets');
+    if (aiTargetBtn) {
+        aiTargetBtn.addEventListener('click', getAITargetSuggestions);
+    }
+    
+    // AI Timing Analysis
+    const aiTimingBtn = document.getElementById('aiAnalyzeTiming');
+    if (aiTimingBtn) {
+        aiTimingBtn.addEventListener('click', getAITimingAnalysis);
+    }
+    
+    // AI Viability Analysis
+    const aiViabilityBtn = document.getElementById('aiAnalyzeViability');
+    if (aiViabilityBtn) {
+        aiViabilityBtn.addEventListener('click', getAIViabilityAnalysis);
+    }
+}
+
+async function getAIConfigSuggestions() {
+    const title = document.getElementById('title').value.trim();
+    const domain = document.getElementById('domain').value;
+    const description = document.getElementById('description').value.trim();
+    
+    if (!title || !domain) {
+        alert('Please enter a title and select a domain first');
+        return;
+    }
+    
+    const btn = document.getElementById('aiSuggestConfig');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyzing...';
+    btn.disabled = true;
+    
+    try {
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('domain', domain);
+        formData.append('description', description);
+        
+        const response = await fetch('/api/suggest_trial_config', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showAISuggestions('Trial Configuration Suggestions', result.suggestions);
+        } else {
+            alert('AI suggestions error: ' + result.error);
+        }
+    } catch (error) {
+        alert('Error getting AI suggestions: ' + error.message);
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        if (typeof window.initializeLucideIcons === 'function') { window.initializeLucideIcons(); }
+    }
+}
+
+async function getAITargetSuggestions() {
+    const domain = document.getElementById('domain').value;
+    let outcomes = [];
+    
+    if (domain === 'sports') {
+        outcomes = [
+            document.getElementById('outcome_a_name').value || 'Outcome A',
+            document.getElementById('outcome_b_name').value || 'Outcome B',
+            document.getElementById('outcome_c_name').value || 'Outcome C'
+        ];
+    } else if (domain === 'lottery') {
+        const balls = parseInt(document.getElementById('lottery_balls').value) || 5;
+        for (let i = 1; i <= balls; i++) {
+            outcomes.push(`Ball ${i}`);
+        }
+    } else {
+        outcomes = ['Outcome A', 'Outcome B'];
+    }
+    
+    const btn = document.getElementById('aiSuggestTargets');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyzing...';
+    btn.disabled = true;
+    
+    try {
+        const formData = new FormData();
+        formData.append('domain', domain);
+        formData.append('outcomes', JSON.stringify(outcomes));
+        
+        const response = await fetch('/api/suggest_targets', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showTargetSuggestions(result.suggestions);
+        } else {
+            alert('AI target suggestions error: ' + result.error);
+        }
+    } catch (error) {
+        alert('Error getting AI target suggestions: ' + error.message);
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        if (typeof window.initializeLucideIcons === 'function') { window.initializeLucideIcons(); }
+    }
+}
+
+async function getAITimingAnalysis() {
+    const title = document.getElementById('title').value.trim();
+    const domain = document.getElementById('domain').value;
+    const proposedTime = document.getElementById('result_time').value;
+    
+    if (!title || !domain || !proposedTime) {
+        alert('Please fill in all timing information first');
+        return;
+    }
+    
+    const btn = document.getElementById('aiAnalyzeTiming');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyzing...';
+    btn.disabled = true;
+    
+    try {
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('domain', domain);
+        formData.append('proposed_time', proposedTime);
+        
+        const response = await fetch('/api/analyze_timing', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showAISuggestions('Timing Analysis', result.suggestions);
+        } else {
+            alert('AI timing analysis error: ' + result.error);
+        }
+    } catch (error) {
+        alert('Error getting AI timing analysis: ' + error.message);
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        if (typeof window.initializeLucideIcons === 'function') { window.initializeLucideIcons(); }
+    }
+}
+
+async function getAIViabilityAnalysis() {
+    const title = document.getElementById('title').value.trim();
+    const domain = document.getElementById('domain').value;
+    const description = document.getElementById('description').value.trim();
+    
+    let outcomes = [];
+    if (domain === 'sports') {
+        outcomes = [
+            document.getElementById('outcome_a_name').value || 'Outcome A',
+            document.getElementById('outcome_b_name').value || 'Outcome B',
+            document.getElementById('outcome_c_name').value || 'Outcome C'
+        ];
+    } else if (domain === 'lottery') {
+        const balls = parseInt(document.getElementById('lottery_balls').value) || 5;
+        for (let i = 1; i <= balls; i++) {
+            outcomes.push(`Ball ${i}`);
+        }
+    } else {
+        outcomes = ['Outcome A', 'Outcome B'];
+    }
+    
+    const btn = document.getElementById('aiAnalyzeViability');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyzing...';
+    btn.disabled = true;
+    
+    try {
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('domain', domain);
+        formData.append('description', description);
+        formData.append('outcomes', JSON.stringify(outcomes));
+        
+        const response = await fetch('/api/analyze_viability', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showViabilityAnalysis(result.suggestions);
+        } else {
+            alert('AI viability analysis error: ' + result.error);
+        }
+    } catch (error) {
+        alert('Error getting AI viability analysis: ' + error.message);
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        if (typeof window.initializeLucideIcons === 'function') { window.initializeLucideIcons(); }
+    }
+}
+
+function showAISuggestions(title, suggestions) {
+    let content = `<div class="ai-suggestions-modal">`;
+    content += `<h5><i data-lucide="zap"></i> ${title}</h5>`;
+    
+    for (const [key, value] of Object.entries(suggestions)) {
+        const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        if (Array.isArray(value)) {
+            content += `<h6>${label}:</h6><ul>`;
+            value.forEach(item => content += `<li>${item}</li>`);
+            content += `</ul>`;
+        } else {
+            content += `<h6>${label}:</h6><p>${value}</p>`;
+        }
+    }
+    
+    content += `</div>`;
+    
+    const modalHtml = `
+        <div class="modal fade" id="aiSuggestionsModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">AI Suggestions</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">${content}</div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove any existing modal
+    const existingModal = document.getElementById('aiSuggestionsModal');
+    if (existingModal) existingModal.remove();
+    
+    // Add new modal
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('aiSuggestionsModal'));
+    modal.show();
+    
+    if (typeof window.initializeLucideIcons === 'function') { window.initializeLucideIcons(); }
+}
+
+function showTargetSuggestions(suggestions) {
+    let content = `<div class="ai-suggestions-modal">`;
+    content += `<h5><i data-lucide="target"></i> AI Target Recommendations</h5>`;
+    
+    if (suggestions.recommended_targets) {
+        content += `<h6>Recommended Target Assignments:</h6>`;
+        suggestions.recommended_targets.forEach(rec => {
+            content += `<div class="mb-2">
+                <strong>${rec.outcome}:</strong> Target #${rec.target_id}
+                <br><small class="text-muted">${rec.reasoning}</small>
+            </div>`;
+        });
+    }
+    
+    if (suggestions.selection_principles) {
+        content += `<h6>Selection Principles:</h6><ul>`;
+        suggestions.selection_principles.forEach(principle => {
+            content += `<li>${principle}</li>`;
+        });
+        content += `</ul>`;
+    }
+    
+    if (suggestions.warnings && suggestions.warnings.length > 0) {
+        content += `<h6 class="text-warning">Warnings:</h6><ul>`;
+        suggestions.warnings.forEach(warning => {
+            content += `<li>${warning}</li>`;
+        });
+        content += `</ul>`;
+    }
+    
+    content += `</div>`;
+    
+    const modalHtml = `
+        <div class="modal fade" id="aiTargetModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">AI Target Suggestions</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">${content}</div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" onclick="applyTargetSuggestions(${JSON.stringify(suggestions.recommended_targets || [])})">Apply Suggestions</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove any existing modal
+    const existingModal = document.getElementById('aiTargetModal');
+    if (existingModal) existingModal.remove();
+    
+    // Add new modal
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('aiTargetModal'));
+    modal.show();
+    
+    if (typeof window.initializeLucideIcons === 'function') { window.initializeLucideIcons(); }
+}
+
+function showViabilityAnalysis(suggestions) {
+    let content = `<div class="ai-suggestions-modal">`;
+    content += `<h5><i data-lucide="search"></i> Trial Viability Analysis</h5>`;
+    
+    if (suggestions.viability_score) {
+        const score = suggestions.viability_score;
+        const scoreClass = score >= 8 ? 'success' : score >= 6 ? 'warning' : 'danger';
+        content += `<div class="mb-3">
+            <h6>Overall Quality Score: <span class="badge bg-${scoreClass}">${score}/10</span></h6>
+        </div>`;
+    }
+    
+    if (suggestions.strengths) {
+        content += `<h6 class="text-success">Strengths:</h6><ul>`;
+        suggestions.strengths.forEach(strength => content += `<li>${strength}</li>`);
+        content += `</ul>`;
+    }
+    
+    if (suggestions.potential_issues) {
+        content += `<h6 class="text-warning">Potential Issues:</h6><ul>`;
+        suggestions.potential_issues.forEach(issue => content += `<li>${issue}</li>`);
+        content += `</ul>`;
+    }
+    
+    if (suggestions.recommendations) {
+        content += `<h6 class="text-primary">Recommendations:</h6><ul>`;
+        suggestions.recommendations.forEach(rec => content += `<li>${rec}</li>`);
+        content += `</ul>`;
+    }
+    
+    if (suggestions.resolvability_analysis) {
+        content += `<h6>Resolvability Analysis:</h6><p>${suggestions.resolvability_analysis}</p>`;
+    }
+    
+    if (suggestions.arv_suitability) {
+        content += `<h6>ARV Suitability:</h6><p>${suggestions.arv_suitability}</p>`;
+    }
+    
+    content += `</div>`;
+    
+    const modalHtml = `
+        <div class="modal fade" id="aiViabilityModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">AI Viability Analysis</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">${content}</div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove any existing modal
+    const existingModal = document.getElementById('aiViabilityModal');
+    if (existingModal) existingModal.remove();
+    
+    // Add new modal
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('aiViabilityModal'));
+    modal.show();
+    
+    if (typeof window.initializeLucideIcons === 'function') { window.initializeLucideIcons(); }
+}
+
+function applyTargetSuggestions(recommendations) {
+    // Target suggestions are now handled automatically by the server
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('aiTargetModal'));
+    if (modal) modal.hide();
+    
+    alert('Target suggestions noted! Targets will be automatically selected when the trial is created.');
+}
+
+// Pricing Option Selection
+function setupPricingOptions() {
+    const pricingOptions = document.querySelectorAll('.pricing-option');
+    const taskingTypeInput = document.getElementById('tasking_type');
+    const groupOptions = document.getElementById('group_options');
+    
+    pricingOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            // Remove selected state from all options
+            pricingOptions.forEach(opt => opt.classList.remove('border-primary', 'selected'));
+            
+            // Add selected state to clicked option
+            this.classList.add('border-primary', 'selected');
+            
+            // Update hidden input
+            const type = this.getAttribute('data-type');
+            taskingTypeInput.value = type;
+            
+            // Show/hide group options
+            if (type === 'group') {
+                groupOptions.style.display = 'block';
+            } else {
+                groupOptions.style.display = 'none';
+            }
+            
+            // Show credit warning if individual selected and no credits
+            const hasCredits = {{ user.tasking_credits }};
+            if (type === 'individual' && hasCredits === 0) {
+                showCreditWarning();
+            }
+        });
+    });
+    
+    // Set initial selection to individual if user has credits, otherwise group
+    const hasCredits = {{ user.tasking_credits }};
+    const defaultType = hasCredits > 0 ? 'individual' : 'group';
+    const defaultOption = document.querySelector(`[data-type="${defaultType}"]`);
+    if (defaultOption) {
+        defaultOption.click();
+    }
+}
+
+function showCreditWarning() {
+    const warningHtml = `
+        <div class="modal fade" id="creditWarningModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i data-lucide="alert-circle" class="me-2"></i>
+                            No Credits Available
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>You don't have any credits for individual taskings. You can:</p>
+                        <ul class="mb-3">
+                            <li><strong>Purchase credits</strong> to create individual taskings ($9 for 10 credits)</li>
+                            <li><strong>Create a group tasking</strong> instead - these are always free!</li>
+                        </ul>
+                        <p class="text-muted small">
+                            <i data-lucide="info" style="width: 16px; height: 16px;"></i>
+                            Individual taskings help you practice and improve your personal ARV skills.
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="/purchase-credits" class="btn btn-primary">
+                            <i data-lucide="credit-card" class="me-2"></i>
+                            Purchase Credits
+                        </a>
+                        <button type="button" class="btn btn-outline-secondary" onclick="selectGroupTasking()" data-bs-dismiss="modal">
+                            Use Group Tasking (Free)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal
+    const existingModal = document.getElementById('creditWarningModal');
+    if (existingModal) existingModal.remove();
+    
+    // Add and show modal
+    document.body.insertAdjacentHTML('beforeend', warningHtml);
+    const modal = new bootstrap.Modal(document.getElementById('creditWarningModal'));
+    modal.show();
+    
+    if (typeof window.initializeLucideIcons === 'function') { window.initializeLucideIcons(); }
+}
+
+function selectGroupTasking() {
+    const groupOption = document.querySelector('[data-type="group"]');
+    if (groupOption) {
+        groupOption.click();
+    }
+}
+</script>
+
+<style>
+.wizard-step {
+    min-height: 400px;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.progress-bar {
+    transition: width 0.3s ease;
+}
+
+.form-text {
+    color: #6c757d;
+    font-size: 0.875em;
+}
+
+.alert {
+    border-left: 4px solid;
+}
+
+.alert-info {
+    border-left-color: #0dcaf0;
+}
+
+.alert-success {
+    border-left-color: #198754;
+}
+
+/* Pricing Option Styling */
+.pricing-option {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid #dee2e6 !important;
+}
+
+.pricing-option:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.pricing-option.selected {
+    border-color: #0d6efd !important;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.pricing-option .card-body {
+    position: relative;
+}
+
+.pricing-option.selected::before {
+    content: '✓';
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: #0d6efd;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+}
+</style>
+{% endblock %}

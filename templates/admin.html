@@ -1,0 +1,692 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel - ARVLab{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1><i data-lucide="settings"></i> Admin Panel</h1>
+        <p class="lead">Manage tasks, targets, and users for the ARVLab platform.</p>
+    </div>
+    <div class="btn-group">
+        <a href="/admin/users" class="btn btn-primary">
+            <i data-lucide="users"></i> User Management
+        </a>
+        <a href="/targets" class="btn btn-outline-primary">
+            <i data-lucide="image"></i> Target Management
+        </a>
+        <a href="/admin/feedback" class="btn btn-outline-primary">
+            <i data-lucide="message-circle"></i> User Feedback
+        </a>
+        <a href="/static/feedback_config.html" class="btn btn-outline-secondary" target="_blank">
+            <i data-lucide="settings"></i> Configure Feedback
+        </a>
+    </div>
+</div>
+
+<!-- Quick Access -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h3 class="mb-3"><i data-lucide="zap"></i> Quick Access</h3>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i data-lucide="users" class="stats-icon text-primary mb-3" style="width: 48px; height: 48px;"></i>
+                <h5>User Management</h5>
+                <p class="text-muted">Edit and delete user accounts, manage roles and permissions</p>
+                <a href="/admin/users" class="btn btn-primary">
+                    <i data-lucide="users"></i> Manage Users
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i data-lucide="image" class="stats-icon text-secondary mb-3" style="width: 48px; height: 48px;"></i>
+                <h5>Target Management</h5>
+                <p class="text-muted">Upload, organize, and manage target images for ARV tasks</p>
+                <a href="/targets" class="btn btn-outline-primary">
+                    <i data-lucide="image"></i> Manage Targets
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i data-lucide="edit-3" class="stats-icon text-warning mb-3" style="width: 48px; height: 48px;"></i>
+                <h5>Homepage Editor</h5>
+                <p class="text-muted">Edit homepage content, headlines, and call-to-action messages</p>
+                <a href="/admin/homepage" class="btn btn-outline-warning">
+                    <i data-lucide="edit"></i> Edit Homepage
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i data-lucide="plus-circle" class="stats-icon text-success mb-3" style="width: 48px; height: 48px;"></i>
+                <h5>Create Task</h5>
+                <p class="text-muted">Start a new ARV prediction task for users to participate in</p>
+                <a href="/trials/create" class="btn btn-outline-success">
+                    <i data-lucide="plus"></i> Create Task
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i data-lucide="bar-chart-2" class="stats-icon text-info mb-3" style="width: 48px; height: 48px;"></i>
+                <h5>User Feedback</h5>
+                <p class="text-muted">View user feedback and suggestions for platform improvements</p>
+                <a href="/admin/feedback" class="btn btn-outline-info">
+                    <i data-lucide="message-circle"></i> View Feedback
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Core Engagement Metrics -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h3 class="mb-3"><i data-lucide="trending-up"></i> Core Engagement Metrics</h3>
+    </div>
+</div>
+
+<!-- User Activity Analytics - DAU/WAU/MAU -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card text-center">
+            <div class="card-body">
+                <i data-lucide="users" class="stats-icon text-primary mb-2"></i>
+                <h4 class="text-secondary">{{ analytics.user_activity.total_users }}</h4>
+                <h6 class="text-muted">Total Users</h6>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card text-center">
+            <div class="card-body">
+                <i data-lucide="activity" class="stats-icon text-success mb-2"></i>
+                <h4 class="text-success">{{ analytics.user_activity.active_7_days }}</h4>
+                <h6 class="text-muted">Active Users (7 days)</h6>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card text-center">
+            <div class="card-body">
+                <i data-lucide="calendar" class="stats-icon text-info mb-2"></i>
+                <h4 class="text-info">{{ analytics.user_activity.active_30_days }}</h4>
+                <h6 class="text-muted">Active Users (30 days)</h6>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card text-center">
+            <div class="card-body">
+                <i data-lucide="percent" class="stats-icon text-warning mb-2"></i>
+                <h4 class="text-warning">{{ analytics.user_activity.retention.retention_rate }}%</h4>
+                <h6 class="text-muted">User Retention Rate</h6>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trial & Task Completion Metrics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card text-center">
+            <div class="card-body">
+                <i data-lucide="target" class="stats-icon text-secondary mb-2"></i>
+                <h4 class="text-secondary">{{ analytics.trial_metrics.total_trials }}</h4>
+                <h6 class="text-muted">Total Trials</h6>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card text-center">
+            <div class="card-body">
+                <i data-lucide="check-circle" class="stats-icon text-success mb-2"></i>
+                <h4 class="text-success">{{ analytics.trial_metrics.completed_trials }}</h4>
+                <h6 class="text-muted">Completed Trials</h6>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card text-center">
+            <div class="card-body">
+                <i data-lucide="play-circle" class="stats-icon text-primary mb-2"></i>
+                <h4 class="text-primary">{{ analytics.trial_metrics.active_trials }}</h4>
+                <h6 class="text-muted">Active Trials</h6>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card text-center">
+            <div class="card-body">
+                <i data-lucide="trending-up" class="stats-icon text-info mb-2"></i>
+                <h4 class="text-info">{{ analytics.trial_metrics.completion_rate }}%</h4>
+                <h6 class="text-muted">Completion Rate</h6>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Prediction Performance Analytics -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="mb-3"><i data-lucide="zap"></i> Prediction Performance Analytics</h4>
+    </div>
+    <div class="col-md-4">
+        <div class="card stats-card text-center">
+            <div class="card-body">
+                <i data-lucide="eye" class="stats-icon text-primary mb-2"></i>
+                <h4 class="text-primary">{{ analytics.prediction_performance.total_predictions }}</h4>
+                <h6 class="text-muted">Total Predictions</h6>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stats-card text-center">
+            <div class="card-body">
+                <i data-lucide="check" class="stats-icon text-success mb-2"></i>
+                <h4 class="text-success">{{ analytics.prediction_performance.correct_predictions }}</h4>
+                <h6 class="text-muted">Correct Predictions</h6>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stats-card text-center">
+            <div class="card-body">
+                <i data-lucide="award" class="stats-icon text-warning mb-2"></i>
+                <h4 class="text-warning">{{ analytics.prediction_performance.accuracy_rate }}%</h4>
+                <h6 class="text-muted">Overall Accuracy Rate</h6>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Domain-Specific Performance -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h5 class="mb-3"><i data-lucide="pie-chart"></i> Domain-Specific Performance</h5>
+    </div>
+    {% for domain, stats in analytics.prediction_performance.domain_stats.items() %}
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0 text-capitalize">{{ domain }}</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="text-muted small">Trials</div>
+                        <div class="fw-bold">{{ stats.trials }}</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-muted small">Predictions</div>
+                        <div class="fw-bold">{{ stats.predictions }}</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-muted small">Accuracy</div>
+                        <div class="fw-bold text-{% if stats.accuracy >= 60 %}success{% elif stats.accuracy >= 40 %}warning{% else %}danger{% endif %}">{{ stats.accuracy }}%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Session Analytics & Collaboration Metrics -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i data-lucide="clock"></i> Session Analytics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="text-center">
+                            <h4 class="text-primary">{{ analytics.session_analytics.total_sessions }}</h4>
+                            <small class="text-muted">Total Sessions</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center">
+                            <h4 class="text-info">{{ analytics.session_analytics.avg_descriptors_per_session }}</h4>
+                            <small class="text-muted">Avg Descriptors/Session</small>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="text-center">
+                    <h5 class="text-success">{{ analytics.session_analytics.recent_sessions_30_days }}</h5>
+                    <small class="text-muted">Sessions (Last 30 Days)</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i data-lucide="users"></i> Collaborative Intelligence</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="text-center">
+                            <h4 class="text-primary">{{ analytics.collaboration.total_descriptors }}</h4>
+                            <small class="text-muted">Total Descriptors</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center">
+                            <h4 class="text-info">{{ analytics.collaboration.avg_votes_per_descriptor }}</h4>
+                            <small class="text-muted">Avg Votes/Descriptor</small>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="text-center">
+                    <h5 class="text-success">{{ analytics.collaboration.collaborative_trials }}</h5>
+                    <small class="text-muted">Collaborative Trials</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Performers Leaderboard -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i data-lucide="trophy"></i> Top Performers</h5>
+            </div>
+            <div class="card-body">
+                {% if analytics.top_performers %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Name</th>
+                                    <th>Accuracy</th>
+                                    <th>Predictions</th>
+                                    <th>Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for performer in analytics.top_performers[:5] %}
+                                <tr>
+                                    <td>
+                                        {% if loop.index == 1 %}🥇
+                                        {% elif loop.index == 2 %}🥈
+                                        {% elif loop.index == 3 %}🥉
+                                        {% else %}{{ loop.index }}{% endif %}
+                                    </td>
+                                    <td>{{ performer.name }}</td>
+                                    <td><span class="badge bg-{% if performer.accuracy >= 60 %}success{% elif performer.accuracy >= 40 %}warning{% else %}secondary{% endif %}">{{ performer.accuracy }}%</span></td>
+                                    <td>{{ performer.total_predictions }}</td>
+                                    <td>{{ performer.skill_score }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center">No performance data available yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i data-lucide="trending-up"></i> Recent Activity (30 Days)</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <h4 class="text-primary">{{ analytics.recent_activity.trials_created_30_days }}</h4>
+                        <small class="text-muted">New Trials</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="text-success">{{ analytics.recent_activity.predictions_made_30_days }}</h4>
+                        <small class="text-muted">Predictions</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="text-info">{{ analytics.recent_activity.sessions_completed_30_days }}</h4>
+                        <small class="text-muted">Sessions</small>
+                    </div>
+                </div>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h5 class="text-warning">{{ analytics.user_activity.retention.new_users_30_days }}</h5>
+                        <small class="text-muted">New Users</small>
+                    </div>
+                    <div class="col-6">
+                        <h5 class="text-secondary">{{ targets | length }}</h5>
+                        <small class="text-muted">Total Targets</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Trial Section -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5><i data-lucide="plus-circle"></i> Create New Trial</h5>
+        <div class="btn-group">
+            <a href="/admin/wizard" class="btn btn-outline-secondary btn-sm">
+                <i data-lucide="zap"></i> General Wizard
+            </a>
+            <a href="/admin/lottery/wizard" class="btn btn-secondary btn-sm">
+                <i data-lucide="dice-6"></i> Lottery Wizard
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <form method="post" action="/admin/create_trial">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Trial Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="domain" class="form-label">Domain</label>
+                        <select class="form-select" id="domain" name="domain" required>
+                            <option value="stocks">Stocks</option>
+                            <option value="sports">Sports</option>
+                            <option value="lottery">Lottery</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="result_time" class="form-label">Result Time (UTC)</label>
+                        <input type="datetime-local" class="form-control" id="result_time" name="result_time" required>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <!-- Auto-selection Information -->
+                    <div class="alert alert-success mb-3">
+                        <i data-lucide="zap"></i>
+                        <strong>Automatic Target Selection</strong><br>
+                        <small>Targets will be automatically selected using the intelligent distinctiveness algorithm when the trial is created.</small>
+                    </div>
+                    
+                    <!-- Custom outcome names for sports -->
+                    <div id="sports-outcomes-container" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="outcome_a_name" class="form-label">Outcome A Name</label>
+                                <input type="text" class="form-control" id="outcome_a_name" name="outcome_a_name" placeholder="e.g., Manchester United">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="outcome_b_name" class="form-label">Outcome B Name</label>
+                                <input type="text" class="form-control" id="outcome_b_name" name="outcome_b_name" placeholder="e.g., Chelsea">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="outcome_c_name" class="form-label">Outcome C Name</label>
+                                <input type="text" class="form-control" id="outcome_c_name" name="outcome_c_name" placeholder="e.g., Draw">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Lottery configuration -->
+                    <div id="lottery-config-container" style="display: none;">
+                        <div class="mb-3">
+                            <label for="lottery_balls" class="form-label">Number of Lottery Balls</label>
+                            <input type="number" class="form-control" id="lottery_balls" name="lottery_balls" min="2" max="20" value="5" placeholder="e.g., 5">
+                            <small class="text-muted">Number of possible outcomes (balls/numbers). Targets will be auto-generated.</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="event_spec" class="form-label">Event Specification (JSON)</label>
+                        <textarea class="form-control" id="event_spec" name="event_spec" rows="3" 
+                                  placeholder='{"description": "Market will go up or down by close"}'></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-secondary">
+                <i data-lucide="plus"></i> Create Trial
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Trials Management -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5><i data-lucide="list"></i> Trial Management</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Domain</th>
+                        <th>Status</th>
+                        <th>Result Time</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for trial in trials %}
+                    <tr>
+                        <td>{{ trial.id }}</td>
+                        <td>{{ trial.title }}</td>
+                        <td>{{ trial.domain.title() }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if trial.status == 'open' else 'primary' if trial.status == 'live' else 'secondary' if trial.status == 'draft' else 'info' }}">
+                                {{ trial.status.upper() }}
+                            </span>
+                        </td>
+                        <td>{{ trial.result_time_utc.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <a href="/trials/{{ trial.id }}" class="btn btn-sm btn-outline-primary">View</a>
+                            {% if trial.status == 'draft' %}
+                            <button class="btn btn-sm btn-success" onclick="startTrial({{ trial.id }})">Start</button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- AI Processing Tools -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5><i data-lucide="cpu"></i> AI Processing Tools</h5>
+    </div>
+    <div class="card-body">
+        <p class="text-muted">Advanced tools for improving judging efficiency through visual preprocessing.</p>
+        <div class="alert alert-success" role="alert">
+            <i data-lucide="check-circle" class="me-1"></i>
+            CLIP preprocessing is enabled. Generate embeddings for faster AI analysis.
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-primary" onclick="preprocessTargets()" id="preprocessBtn">
+                <i data-lucide="cpu" class="me-1"></i>
+                Generate CLIP Embeddings
+            </button>
+            <div id="preprocessStatus" class="text-muted" style="display: none;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Users Management -->
+<div class="card">
+    <div class="card-header">
+        <h5><i data-lucide="users"></i> User Management</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Skill Score</th>
+                        <th>Registered</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user_item in users %}
+                    <tr>
+                        <td>{{ user_item.id }}</td>
+                        <td>{{ user_item.name }}</td>
+                        <td>{{ user_item.email }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'danger' if user_item.role == 'admin' else 'warning' if user_item.role == 'judge' else 'info' if user_item.role == 'analyst' else 'secondary' }}">
+                                {{ user_item.role.upper() }}
+                            </span>
+                        </td>
+                        <td>{{ "%.2f"|format(user_item.skill_score) }}</td>
+                        <td>{{ user_item.created_at.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function startTrial(trialId) {
+    try {
+        const response = await fetch(`/trials/${trialId}/start`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Failed to start trial');
+        }
+    } catch (error) {
+        console.error('Error starting trial:', error);
+        alert('Error starting trial');
+    }
+}
+
+// Set default result time to 1 hour from now
+document.addEventListener('DOMContentLoaded', function() {
+    const resultTimeInput = document.getElementById('result_time');
+    const now = new Date();
+    now.setHours(now.getHours() + 1);
+    resultTimeInput.value = now.toISOString().slice(0, 16);
+});
+
+// Handle domain change to show/hide outcome forms
+document.getElementById('domain').addEventListener('change', function() {
+    const domain = this.value;
+    
+    if (domain === 'sports') {
+        // Show custom outcome names for sports
+        document.getElementById('sports-outcomes-container').style.display = 'block';
+        document.getElementById('lottery-config-container').style.display = 'none';
+    } else if (domain === 'lottery') {
+        // Show lottery config, hide sports outcomes
+        document.getElementById('sports-outcomes-container').style.display = 'none';
+        document.getElementById('lottery-config-container').style.display = 'block';
+    } else {
+        // Hide both special configs for other domains
+        document.getElementById('sports-outcomes-container').style.display = 'none';
+        document.getElementById('lottery-config-container').style.display = 'none';
+        
+        // Clear custom outcome names
+        document.getElementById('outcome_a_name').value = '';
+        document.getElementById('outcome_b_name').value = '';
+        document.getElementById('outcome_c_name').value = '';
+    }
+});
+
+// No additional target selection code needed - targets are auto-selected by the server
+
+// CLIP preprocessing function
+async function preprocessTargets() {
+    const btn = document.getElementById('preprocessBtn');
+    const status = document.getElementById('preprocessStatus');
+    
+    // Show loading state
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader" class="me-1"></i> Processing...';
+    status.style.display = 'block';
+    status.textContent = 'Generating CLIP embeddings for target images...';
+    status.className = 'text-info';
+    
+    try {
+        const response = await fetch('/admin/preprocess_targets', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            status.textContent = result.message;
+            status.className = 'text-success';
+            
+            // Re-initialize feather icons for the success icon
+            setTimeout(() => {
+                if (typeof window.initializeLucideIcons === 'function') {
+                    window.initializeLucideIcons();
+                }
+            }, 100);
+        } else {
+            status.textContent = `Error: ${result.error}`;
+            status.className = 'text-danger';
+        }
+        
+    } catch (error) {
+        console.error('Preprocessing error:', error);
+        status.textContent = 'Failed to process embeddings. Please try again.';
+        status.className = 'text-danger';
+    } finally {
+        // Reset button
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="cpu" class="me-1"></i> Generate CLIP Embeddings';
+        
+        // Re-initialize feather icons
+        if (typeof window.initializeLucideIcons === 'function') {
+            window.initializeLucideIcons();
+        }
+    }
+}
+</script>
+{% endblock %}

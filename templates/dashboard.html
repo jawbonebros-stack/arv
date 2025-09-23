@@ -1,0 +1,769 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - ARVLab{% endblock %}
+
+{% block breadcrumb_items %},
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Dashboard",
+                "item": "https://arvlab.xyz/dashboard"
+            }{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active" aria-current="page">
+    <i data-lucide="bar-chart-2" style="width: 16px; height: 16px;" class="me-1"></i>
+    Dashboard
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Dashboard Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-2"><i data-lucide="bar-chart-2"></i> Performance Dashboard</h1>
+                    <p class="text-muted mb-0">Track your ARV journey and measure your remote viewing capabilities</p>
+                </div>
+                <div class="text-end">
+                    <div class="badge bg-secondary fs-6 px-3 py-2">
+                        {{ user.name }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Overview Cards -->
+    <div class="row mb-4 g-3">
+        <div class="col-md-3">
+            <div class="card stats-card text-center h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="stats-icon-wrapper mb-3">
+                        <i data-lucide="target" class="stats-icon text-secondary"></i>
+                    </div>
+                    <h2 class="fw-bold text-dark mb-2">{{ dashboard_data.performance.accuracy_rate }}%</h2>
+                    <h6 class="text-muted mb-2">Overall Accuracy</h6>
+                    <div class="small text-{% if dashboard_data.performance.accuracy_trend > 0 %}success{% elif dashboard_data.performance.accuracy_trend < 0 %}danger{% else %}muted{% endif %}">
+                        <i data-lucide="{% if dashboard_data.performance.accuracy_trend > 0 %}trending-up{% elif dashboard_data.performance.accuracy_trend < 0 %}trending-down{% else %}minus{% endif %}" class="me-1" style="width: 14px; height: 14px;"></i>
+                        {{ dashboard_data.performance.accuracy_trend|abs }}% vs last month
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card text-center h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="stats-icon-wrapper mb-3">
+                        <i data-lucide="zap" class="stats-icon text-secondary"></i>
+                    </div>
+                    <h2 class="fw-bold text-dark mb-2">{{ dashboard_data.streaks.current_streak }}</h2>
+                    <h6 class="text-muted mb-2">Current Streak</h6>
+                    <div class="small text-muted">
+                        Best: {{ dashboard_data.streaks.longest_streak }} tasks
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card text-center h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="stats-icon-wrapper mb-3">
+                        <i data-lucide="activity" class="stats-icon text-secondary"></i>
+                    </div>
+                    <h2 class="fw-bold text-dark mb-2">{{ dashboard_data.engagement.total_sessions }}</h2>
+                    <h6 class="text-muted mb-2">Total Sessions</h6>
+                    <div class="small text-muted">
+                        {{ dashboard_data.engagement.avg_sessions_per_week }} per week avg
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card text-center h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="stats-icon-wrapper mb-3">
+                        <i data-lucide="credit-card" class="stats-icon text-secondary"></i>
+                    </div>
+                    <h2 class="fw-bold text-dark mb-2">{{ user.tasking_credits }}</h2>
+                    <h6 class="text-muted mb-2">Credits Available</h6>
+                    <div class="small text-muted">
+                        <a href="/purchase-credits" class="text-decoration-none">Purchase more</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card text-center h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="stats-icon-wrapper mb-3">
+                        <i data-lucide="award" class="stats-icon text-secondary"></i>
+                    </div>
+                    <h2 class="fw-bold text-dark mb-2">{{ dashboard_data.performance.skill_score }}</h2>
+                    <h6 class="text-muted mb-2">Skill Score</h6>
+                    <div class="small text-muted">
+                        Rank #{{ dashboard_data.comparative.rank }} of {{ dashboard_data.comparative.total_users }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Achievement Sharing Section -->
+    {% if dashboard_data.performance.accuracy_rate >= 50 or dashboard_data.streaks.current_streak >= 3 or dashboard_data.comparative.rank <= 10 %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="mb-2 fw-bold">
+                                <i data-lucide="share-2" class="me-2"></i>Share Your Achievement
+                            </h5>
+                            <p class="text-muted mb-0">
+                                {% if dashboard_data.comparative.rank <= 10 %}
+                                <i data-lucide="trophy" class="me-1" style="width: 16px; height: 16px;"></i> You're ranked #{{ dashboard_data.comparative.rank }} on the leaderboard!
+                                {% elif dashboard_data.performance.accuracy_rate >= 70 %}
+                                <i data-lucide="target" class="me-1" style="width: 16px; height: 16px;"></i> {{ dashboard_data.performance.accuracy_rate }}% accuracy rate - excellent performance!
+                                {% elif dashboard_data.streaks.current_streak >= 5 %}
+                                <i data-lucide="zap" class="me-1" style="width: 16px; height: 16px;"></i> {{ dashboard_data.streaks.current_streak }}-task winning streak!
+                                {% else %}
+                                <i data-lucide="trending-up" class="me-1" style="width: 16px; height: 16px;"></i> Solid progress in ARV research - share your journey!
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="btn-group">
+                                <button class="btn btn-primary btn-sm" onclick="shareDashboard('twitter')">
+                                    <i data-lucide="twitter" style="width: 14px; height: 14px;"></i>
+                                    Twitter
+                                </button>
+                                <button class="btn btn-success btn-sm" onclick="shareDashboard('whatsapp')">
+                                    <i data-lucide="message-circle" style="width: 14px; height: 14px;"></i>
+                                    WhatsApp
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="shareDashboard('copy')">
+                                    <i data-lucide="copy" style="width: 14px; height: 14px;"></i>
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Performance Tracking & Session Analysis -->
+    <div class="row mb-4 g-3">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 pb-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i data-lucide="trending-up" class="me-2"></i>Performance Trends
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Performance by Domain -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3 fw-semibold">Domain-Specific Performance</h6>
+                        <div class="row g-3">
+                            {% for domain, stats in dashboard_data.performance.domain_breakdown.items() %}
+                            <div class="col-md-4">
+                                <div class="domain-performance-card p-3 border rounded-3 bg-light">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="text-capitalize fw-semibold text-dark">{{ domain }}</span>
+                                        <span class="badge bg-{% if stats.accuracy >= 60 %}secondary{% elif stats.accuracy >= 40 %}secondary{% else %}secondary{% endif %} text-white px-2 py-1">
+                                            {{ stats.accuracy }}%
+                                        </span>
+                                    </div>
+                                    <div class="progress mb-2" style="height: 6px;">
+                                        <div class="progress-bar bg-secondary" 
+                                             style="width: {{ stats.accuracy }}%"></div>
+                                    </div>
+                                    <small class="text-muted">{{ stats.predictions }} predictions</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Recent Performance Timeline -->
+                    <div class="mb-0">
+                        <h6 class="text-muted mb-3 fw-semibold">Recent Performance (Last 30 Days)</h6>
+                        <div class="timeline-wrapper p-3 bg-light rounded-3">
+                            <div class="d-flex justify-content-between text-center">
+                                {% for period in dashboard_data.performance.recent_timeline %}
+                                <div class="flex-fill timeline-item">
+                                    <div class="timeline-card">
+                                        <div class="text-muted small mb-1">{{ period.period }}</div>
+                                        <div class="h5 fw-bold text-{% if period.accuracy >= 60 %}dark{% elif period.accuracy >= 40 %}dark{% else %}muted{% endif %} mb-1">
+                                            {{ period.accuracy }}%
+                                        </div>
+                                        <div class="text-muted small">{{ period.sessions }} sessions</div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 pb-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i data-lucide="trophy" class="me-2"></i>Achievements
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for badge in dashboard_data.achievements.earned_badges %}
+                    <div class="achievement-item d-flex align-items-center mb-3 p-2 bg-light rounded-3">
+                        <div class="achievement-icon me-3 text-secondary">
+                            <i data-lucide="{{ badge.icon }}" style="width: 24px; height: 24px;"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold text-dark">{{ badge.name }}</div>
+                            <small class="text-muted d-block">{{ badge.description }}</small>
+                            <div class="text-muted small mt-1">
+                                <i data-lucide="calendar" style="width: 12px; height: 12px;" class="me-1"></i>
+                                Earned {{ badge.earned_date }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if dashboard_data.achievements.next_badges %}
+                    <hr class="my-3 border-light">
+                    <h6 class="text-muted fw-semibold mb-3">Next Achievements</h6>
+                    {% for badge in dashboard_data.achievements.next_badges %}
+                    <div class="next-achievement d-flex align-items-center mb-3 p-2 border rounded-3">
+                        <div class="achievement-icon me-3 text-muted opacity-75">
+                            <i data-lucide="{{ badge.icon }}" style="width: 24px; height: 24px;"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium text-muted">{{ badge.name }}</div>
+                            <div class="progress mt-1" style="height: 4px;">
+                                <div class="progress-bar bg-secondary" style="width: {{ badge.progress }}%"></div>
+                            </div>
+                            <small class="text-muted">{{ badge.progress }}% complete</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Session Volume & Comparative Performance -->
+    <div class="row mb-4 g-3">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 pb-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i data-lucide="calendar" class="me-2"></i>Session Consistency
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center mb-4">
+                        <div class="col-4">
+                            <div class="stat-item p-3 bg-light rounded-3">
+                                <h3 class="fw-bold text-dark mb-1">{{ dashboard_data.engagement.sessions_this_week }}</h3>
+                                <small class="text-muted">This Week</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-item p-3 bg-light rounded-3">
+                                <h3 class="fw-bold text-dark mb-1">{{ dashboard_data.engagement.sessions_this_month }}</h3>
+                                <small class="text-muted">This Month</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-item p-3 bg-light rounded-3">
+                                <h3 class="fw-bold text-dark mb-1">{{ dashboard_data.engagement.consistency_score }}%</h3>
+                                <small class="text-muted">Consistency</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted fw-medium">Active Days This Month</span>
+                            <span class="fw-bold text-dark">{{ dashboard_data.engagement.active_days_month }}/30</span>
+                        </div>
+                        <div class="progress rounded-pill" style="height: 10px;">
+                            <div class="progress-bar bg-secondary rounded-pill" style="width: {{ (dashboard_data.engagement.active_days_month / 30 * 100) }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center p-3 bg-light rounded-3">
+                        <small class="text-muted d-flex align-items-center justify-content-center">
+                            <i data-lucide="clock" class="me-2" style="width: 16px; height: 16px;"></i>
+                            {{ dashboard_data.engagement.days_since_first_session }} days since first session
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 pb-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i data-lucide="users" class="me-2"></i>Community Standing
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="ranking-display p-4 bg-light rounded-3">
+                            <h1 class="display-4 fw-bold text-dark mb-2">#{{ dashboard_data.comparative.rank }}</h1>
+                            <p class="text-muted mb-1 fw-medium">Your Ranking</p>
+                            <small class="text-muted">Out of {{ dashboard_data.comparative.total_users }} practitioners</small>
+                        </div>
+                    </div>
+                    
+                    <div class="row text-center mb-3">
+                        <div class="col-6">
+                            <div class="metric-card p-3 border rounded-3">
+                                <div class="h4 fw-bold text-secondary mb-1">+{{ dashboard_data.comparative.percentile }}%</div>
+                                <small class="text-muted">Above Average</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-card p-3 border rounded-3">
+                                <div class="h4 fw-bold text-secondary mb-1">{{ dashboard_data.comparative.accuracy_vs_community }}%</div>
+                                <small class="text-muted">vs Community Avg</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-summary p-3 bg-light rounded-3">
+                        <h6 class="text-muted mb-3 fw-semibold">Recent Activity</h6>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="fw-bold text-dark h5 mb-1">{{ dashboard_data.comparative.sessions_last_30 }}</div>
+                                <small class="text-muted">Sessions (30d)</small>
+                            </div>
+                            <div class="col-6">
+                                <div class="fw-bold text-dark h5 mb-1">{{ dashboard_data.comparative.predictions_last_30 }}</div>
+                                <small class="text-muted">Predictions (30d)</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Created Tasks Section -->
+    {% if dashboard_data.created_tasks.stats %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center pb-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i data-lucide="plus-circle" class="me-2"></i>My Created Tasks
+                    </h5>
+                    <a href="/wizard" class="btn btn-outline-secondary btn-sm rounded-pill">
+                        <i data-lucide="plus" class="me-1" style="width: 14px; height: 14px;"></i>
+                        Create New
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    <!-- Stats Overview -->
+                    <div class="row g-3 p-4 border-bottom">
+                        <div class="col-md-3 text-center">
+                            <div class="h4 fw-bold text-secondary mb-1">{{ dashboard_data.created_tasks.stats.total_created }}</div>
+                            <small class="text-muted">Total Created</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="h4 fw-bold text-secondary mb-1">{{ dashboard_data.created_tasks.stats.status_breakdown.live + dashboard_data.created_tasks.stats.status_breakdown.open }}</div>
+                            <small class="text-muted">Active Tasks</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="h4 fw-bold text-secondary mb-1">{{ dashboard_data.created_tasks.stats.total_participants }}</div>
+                            <small class="text-muted">Total Participants</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="h4 fw-bold text-secondary mb-1">{{ dashboard_data.created_tasks.stats.group_tasks }}</div>
+                            <small class="text-muted">Group Tasks</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Created Tasks Table -->
+                    {% if dashboard_data.created_tasks.recent %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0 fw-semibold text-muted">Task</th>
+                                    <th class="border-0 fw-semibold text-muted">Created</th>
+                                    <th class="border-0 fw-semibold text-muted">Status</th>
+                                    <th class="border-0 fw-semibold text-muted">Type</th>
+                                    <th class="border-0 fw-semibold text-muted">Participants</th>
+                                    <th class="border-0 fw-semibold text-muted">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for task in dashboard_data.created_tasks.recent %}
+                                <tr>
+                                    <td class="py-3">
+                                        <a href="/trials/{{ task.trial_id }}" class="text-decoration-none fw-medium text-dark">
+                                            {{ task.title|truncate(30) }}
+                                        </a>
+                                        <div class="small text-muted">{{ task.domain|title }}</div>
+                                    </td>
+                                    <td class="py-3 text-muted">{{ task.created_date }}</td>
+                                    <td class="py-3">
+                                        <span class="badge bg-{% if task.status == 'settled' %}secondary{% elif task.status == 'live' %}warning{% elif task.status == 'open' %}info{% else %}light text-dark{% endif %} px-3 py-2">
+                                            {{ task.status|title }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3">
+                                        <span class="badge bg-light text-dark px-3 py-2">
+                                            {% if task.is_group %}
+                                                <i data-lucide="users" class="me-1" style="width: 12px; height: 12px;"></i>Group
+                                            {% else %}
+                                                <i data-lucide="user" class="me-1" style="width: 12px; height: 12px;"></i>Individual
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="py-3">
+                                        <div class="fw-medium">{{ task.participant_count }}</div>
+                                        {% if task.prediction_count > 0 %}
+                                            <small class="text-muted">{{ task.prediction_count }} predictions</small>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-3">
+                                        <div class="btn-group" role="group">
+                                            <a href="/trials/{{ task.trial_id }}" class="btn btn-outline-secondary btn-sm">
+                                                <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                                            </a>
+                                            {% if task.status == 'draft' %}
+                                            <a href="/trials/{{ task.trial_id }}/edit" class="btn btn-outline-secondary btn-sm">
+                                                <i data-lucide="edit" style="width: 14px; height: 14px;"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <div class="empty-state-icon mb-3">
+                            <i data-lucide="plus-circle" class="text-muted" style="width: 48px; height: 48px;"></i>
+                        </div>
+                        <h6 class="text-muted fw-semibold">No tasks created yet</h6>
+                        <p class="text-muted mb-4">Create prediction tasks for the ARV community</p>
+                        <a href="/wizard" class="btn btn-secondary rounded-pill px-4">
+                            <i data-lucide="plus" class="me-2" style="width: 16px; height: 16px;"></i>
+                            Create Your First Task
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Sessions & Insights -->
+    <div class="row g-3">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center pb-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i data-lucide="list" class="me-2"></i>Recent Sessions
+                    </h5>
+                    <a href="/sessions" class="btn btn-outline-secondary btn-sm rounded-pill">
+                        <i data-lucide="external-link" class="me-1" style="width: 14px; height: 14px;"></i>
+                        View All
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    {% if dashboard_data.recent_sessions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0 fw-semibold text-muted">Task</th>
+                                    <th class="border-0 fw-semibold text-muted">Date</th>
+                                    <th class="border-0 fw-semibold text-muted">Result</th>
+                                    <th class="border-0 fw-semibold text-muted">Domain</th>
+                                    <th class="border-0 fw-semibold text-muted">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session in dashboard_data.recent_sessions %}
+                                <tr>
+                                    <td class="py-3">
+                                        <div class="d-flex align-items-center">
+                                            <a href="/trials/{{ session.trial_id }}" class="text-decoration-none fw-medium text-dark me-2">
+                                                {{ session.trial_title|truncate(35) }}
+                                            </a>
+                                            {% if session.is_new_result %}
+                                            <span class="badge bg-info text-white px-2 py-1 rounded-pill" style="font-size: 0.7rem;">
+                                                <i data-lucide="star" style="width: 10px; height: 10px;" class="me-1"></i>New
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="py-3 text-muted">{{ session.date }}</td>
+                                    <td class="py-3">
+                                        {% if session.is_correct is not none %}
+                                            <span class="badge bg-{% if session.is_correct %}secondary{% else %}light text-dark{% endif %} px-3 py-2">
+                                                {% if session.is_correct %}Hit{% else %}Miss{% endif %}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted fw-medium">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-3">
+                                        <span class="badge bg-light text-dark text-capitalize px-3 py-2">{{ session.domain }}</span>
+                                    </td>
+                                    <td class="py-3">
+                                        <span class="badge bg-{% if session.status == 'settled' %}secondary{% elif session.status == 'live' %}warning{% else %}light text-dark{% endif %} px-3 py-2">
+                                            {{ session.status|title }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <div class="empty-state-icon mb-3">
+                            <i data-lucide="activity" class="text-muted" style="width: 48px; height: 48px;"></i>
+                        </div>
+                        <h6 class="text-muted fw-semibold">No sessions yet</h6>
+                        <p class="text-muted mb-4">Start your ARV journey by participating in prediction tasks</p>
+                        <a href="/" class="btn btn-secondary rounded-pill px-4">
+                            <i data-lucide="search" class="me-2" style="width: 16px; height: 16px;"></i>
+                            Browse Tasks
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Activity Feed Section -->
+            {% if dashboard_data.notifications.activity_feed %}
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white border-0 pb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">
+                            <i data-lucide="activity" class="me-2"></i>Recent Activity
+                        </h5>
+                        {% if dashboard_data.notifications.unseen_count > 0 %}
+                        <span class="badge bg-info text-white rounded-pill px-3 py-2">
+                            {{ dashboard_data.notifications.unseen_count }} new
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% for activity in dashboard_data.notifications.activity_feed %}
+                    <div class="activity-item p-3 {% if not loop.last %}border-bottom{% endif %}">
+                        <div class="d-flex align-items-start">
+                            <div class="activity-icon me-3 {% if activity.was_correct %}text-secondary{% else %}text-muted{% endif %}">
+                                <i data-lucide="{% if activity.was_correct %}check-circle{% else %}x-circle{% endif %}" style="width: 16px; height: 16px;"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-medium text-dark mb-1">
+                                    <a href="/trials/{{ activity.trial_id }}" class="text-decoration-none text-dark">
+                                        {{ activity.title|truncate(25) }}
+                                    </a>
+                                </div>
+                                <div class="small text-muted mb-1">
+                                    <span class="badge bg-light text-dark me-2">{{ activity.domain|title }}</span>
+                                    <span class="badge bg-light text-dark me-2">#{{ activity.target_number }}</span>
+                                    {% if activity.was_correct is not none %}
+                                    <span class="badge bg-{% if activity.was_correct %}secondary{% else %}light text-dark{% endif %}">
+                                        {% if activity.was_correct %}Correct{% else %}Incorrect{% endif %}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted">{{ activity.time_ago }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Insights Section -->
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 pb-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i data-lucide="lightbulb" class="me-2"></i>Insights & Recommendations
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for insight in dashboard_data.insights %}
+                    <div class="insight-item mb-3 p-3 bg-light rounded-3 border-start border-4 border-secondary">
+                        <div class="d-flex align-items-start">
+                            <div class="insight-icon me-3 text-secondary">
+                                <i data-lucide="{{ insight.icon }}" style="width: 20px; height: 20px;"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold text-dark mb-1">{{ insight.title }}</div>
+                                <small class="text-muted">{{ insight.description }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if not dashboard_data.insights %}
+                    <div class="text-center py-4">
+                        <div class="insight-placeholder p-4 bg-light rounded-3">
+                            <i data-lucide="trending-up" class="text-muted mb-3" style="width: 32px; height: 32px;"></i>
+                            <h6 class="text-muted fw-semibold mb-2">Get Personalized Insights</h6>
+                            <p class="text-muted mb-0 small">Complete more sessions to receive tailored recommendations for improving your ARV performance</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.achievement-icon {
+    font-size: 2rem;
+    width: 40px;
+    text-align: center;
+}
+
+.progress {
+    border-radius: 10px;
+}
+
+.progress-bar {
+    border-radius: 10px;
+}
+
+.stats-card .card-body {
+    padding: 1.5rem;
+}
+</style>
+
+<script>
+// Dashboard sharing functions
+function shareDashboard(platform) {
+    const accuracy = {{ dashboard_data.performance.accuracy_rate }};
+    const rank = {{ dashboard_data.comparative.rank }};
+    const totalUsers = {{ dashboard_data.comparative.total_users }};
+    const currentStreak = {{ dashboard_data.streaks.current_streak }};
+    const totalSessions = {{ dashboard_data.engagement.total_sessions }};
+    const userName = "{{ user.name }}";
+    
+    let shareText = "";
+    let hashtags = "#RemoteViewing #ARVLab #PredictionResearch";
+    
+    // Create personalized share text based on achievements
+    if (rank <= 3) {
+        shareText = `Top ${rank} on ARVLab Leaderboard! 
+        
+My Stats:
+• ${accuracy}% Accuracy Rate
+• ${currentStreak} Current Streak  
+• ${totalSessions} Total Sessions
+• Rank #${rank} of ${totalUsers} users
+
+The science of remote viewing continues to amaze me!`;
+    } else if (rank <= 10) {
+        shareText = `ARVLab Performance Update:
+
+Rank: #${rank} of ${totalUsers} users
+Accuracy: ${accuracy}%
+Current Streak: ${currentStreak}
+Sessions: ${totalSessions}
+
+Exploring the fascinating world of prediction research!`;
+    } else if (accuracy >= 70) {
+        shareText = `${accuracy}% Accuracy on ARVLab!
+
+My remote viewing stats:
+• ${totalSessions} prediction sessions
+• ${currentStreak} current streak
+• Consistently above community average
+
+The research into consciousness and prediction continues!`;
+    } else {
+        shareText = `Making progress on ARVLab prediction research!
+
+Current Stats:
+• ${accuracy}% Accuracy Rate
+• ${totalSessions} Sessions Completed
+• ${currentStreak} Current Streak
+
+Join me in exploring the science of remote viewing!`;
+    }
+    
+    const url = window.location.href;
+    
+    if (platform === 'twitter') {
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText + '\n\n' + hashtags)}&url=${encodeURIComponent('https://arvlab.xyz')}`;
+        window.open(twitterUrl, '_blank');
+    } else if (platform === 'whatsapp') {
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText + '\n\nCheck it out: https://arvlab.xyz')}`;
+        window.open(whatsappUrl, '_blank');
+    } else if (platform === 'copy') {
+        const fullText = shareText + '\n\nARVLab - Remote Viewing Research Platform\nhttps://arvlab.xyz';
+        navigator.clipboard.writeText(fullText).then(() => {
+            showDashboardToast('Achievement copied to clipboard!', 'success');
+        }).catch(() => {
+            showDashboardToast('Failed to copy text', 'error');
+        });
+    }
+}
+
+function showDashboardToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 1000; min-width: 250px;';
+    toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle' : 'x-circle'}" style="width: 16px; height: 16px;"></i> ${message}`;
+    document.body.appendChild(toast);
+    window.initializeLucideIcons();
+    setTimeout(() => toast.remove(), 3000);
+}
+
+// Mark notifications as seen when dashboard loads
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/notifications/mark-seen', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              // Remove any visible "New" badges since notifications are now seen
+              const newBadges = document.querySelectorAll('.badge.bg-warning:contains("New")');
+              newBadges.forEach(badge => {
+                  if (badge.textContent.trim() === 'New') {
+                      badge.style.display = 'none';
+                  }
+              });
+          }
+      })
+      .catch(error => {
+          console.log('Could not mark notifications as seen:', error);
+      });
+});
+</script>
+{% endblock %}

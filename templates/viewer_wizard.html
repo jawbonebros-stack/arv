@@ -1,0 +1,1126 @@
+{% extends "base.html" %}
+
+{% block title %}ARV Task - {{ trial.title }} - ARVLab{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- ARV Session Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="arv-header-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="arv-info">
+                        <div class="arv-status-badge mb-3">
+                            <span class="session-indicator">
+                                <i data-lucide="eye"></i>
+                                ARV Task Active
+                            </span>
+                            <span class="domain-badge">
+                                <i data-lucide="target"></i>
+                                {{ trial.domain.title() }}
+                            </span>
+                        </div>
+                        
+                        <h1 class="arv-title mb-3">{{ trial.title }}</h1>
+                        <p class="arv-description">Record your sensory impressions for each lottery ball using the categories below. Trust your initial impressions and describe what comes to mind without overthinking.</p>
+                        
+                        <div class="task-meta">
+                            <div class="meta-item">
+                                <i data-lucide="layers"></i>
+                                <span>{{ outcomes|length }} Balls to Process</span>
+                            </div>
+                            <div class="meta-item">
+                                <i data-lucide="clock"></i>
+                                <span>Auto-save enabled</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="task-actions">
+                        <a href="/trials/{{ trial.id }}" class="btn btn-outline-neutral">
+                            <i data-lucide="arrow-left"></i>
+                            Back to Task
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div class="progress-section">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="progress-label">Session Progress</span>
+                        <span class="progress-text" id="progressText">Currently Viewing: Ball 1 of {{ outcomes|length }}</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ball Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="navigation-card">
+                <div class="ball-selector">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3>Ball Navigation</h3>
+                        <div class="nav-controls">
+                            <button class="btn btn-outline-neutral btn-sm" onclick="previousBall()" id="prevBtn" disabled>
+                                <i data-lucide="chevron-left"></i>
+                                Previous
+                            </button>
+                            <button class="btn btn-outline-neutral btn-sm" onclick="nextBall()" id="nextBtn">
+                                Next
+                                <i data-lucide="chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="new-ball-grid">
+                        {% for outcome in outcomes %}
+                        <div class="ball-nav-item {% if loop.index == 1 %}current-ball{% endif %}" 
+                             onclick="selectBall({{ loop.index }})" 
+                             id="ballItem{{ loop.index }}"
+                             data-ball="{{ loop.index }}">
+                            <div class="ball-number">{{ loop.index }}</div>
+                            <div class="ball-label">{{ outcome.label[:8] }}{% if outcome.label|length > 8 %}...{% endif %}</div>
+                            <div class="ball-status" id="ballStatusIcon{{ loop.index }}">
+                                <i data-lucide="circle"></i>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ARV Forms -->
+    <div class="row">
+        <div class="col-12">
+            {% for outcome in outcomes %}
+            <div class="ball-form-card {% if loop.index != 1 %}d-none{% endif %}" id="ball-{{ loop.index }}" data-ball="{{ loop.index }}">
+                <div class="form-header">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="ball-info">
+                            <h2>
+                                <i data-lucide="circle"></i>
+                                Ball {{ loop.index }}: {{ outcome.label }}
+                            </h2>
+                            <p class="ball-subtitle">Record your impressions across all sensory categories</p>
+                        </div>
+                        <div class="form-status" id="formStatus{{ loop.index }}">
+                            <span class="status-badge draft">
+                                <i data-lucide="edit"></i>
+                                Draft
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <form data-ball="{{ loop.index }}">
+                    <div class="sensory-grid">
+                        <!-- Colors Category -->
+                        <div class="category-card colors-card">
+                            <div class="category-header">
+                                <div class="category-icon">
+                                    <i data-lucide="droplet"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h4>Colors</h4>
+                                    <p>Visual colors, hues, and chromatic impressions</p>
+                                </div>
+                            </div>
+                            <div class="category-input">
+                                <textarea class="form-control descriptor-input" 
+                                          name="colours_{{ outcome.id }}" 
+                                          data-category="colours"
+                                          placeholder="Describe any colors you sense... (e.g., deep blue, warm orange, metallic silver)"
+                                          rows="4"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Tactile Category -->
+                        <div class="category-card tactile-card">
+                            <div class="category-header">
+                                <div class="category-icon">
+                                    <i data-lucide="hand"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h4>Tactile</h4>
+                                    <p>Physical sensations, textures, and touch impressions</p>
+                                </div>
+                            </div>
+                            <div class="category-input">
+                                <textarea class="form-control descriptor-input" 
+                                          name="tactile_{{ outcome.id }}" 
+                                          data-category="tactile"
+                                          placeholder="Describe physical sensations... (e.g., smooth, rough, warm, cold, heavy)"
+                                          rows="4"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Energy Category -->
+                        <div class="category-card energy-card">
+                            <div class="category-header">
+                                <div class="category-icon">
+                                    <i data-lucide="zap"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h4>Energy</h4>
+                                    <p>Emotional feelings and energetic impressions</p>
+                                </div>
+                            </div>
+                            <div class="category-input">
+                                <textarea class="form-control descriptor-input" 
+                                          name="energy_{{ outcome.id }}" 
+                                          data-category="energy"
+                                          placeholder="Describe energy or emotions... (e.g., calm, excited, tense, peaceful, dynamic)"
+                                          rows="4"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Smell Category -->
+                        <div class="category-card smell-card">
+                            <div class="category-header">
+                                <div class="category-icon">
+                                    <i data-lucide="wind"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h4>Smell</h4>
+                                    <p>Scents, aromas, and olfactory impressions</p>
+                                </div>
+                            </div>
+                            <div class="category-input">
+                                <textarea class="form-control descriptor-input" 
+                                          name="smell_{{ outcome.id }}" 
+                                          data-category="smell"
+                                          placeholder="Describe any scents... (e.g., floral, earthy, metallic, fresh, musty)"
+                                          rows="4"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Sound Category -->
+                        <div class="category-card sound-card">
+                            <div class="category-header">
+                                <div class="category-icon">
+                                    <i data-lucide="volume-2"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h4>Sound</h4>
+                                    <p>Auditory impressions and sound qualities</p>
+                                </div>
+                            </div>
+                            <div class="category-input">
+                                <textarea class="form-control descriptor-input" 
+                                          name="sound_{{ outcome.id }}" 
+                                          data-category="sound"
+                                          placeholder="Describe sounds... (e.g., soft, loud, rhythmic, sharp, melodic)"
+                                          rows="4"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Visual Category -->
+                        <div class="category-card visual-card">
+                            <div class="category-header">
+                                <div class="category-icon">
+                                    <i data-lucide="eye"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h4>Visual</h4>
+                                    <p>Shapes, patterns, and visual impressions</p>
+                                </div>
+                            </div>
+                            <div class="category-input">
+                                <textarea class="form-control descriptor-input" 
+                                          name="visual_{{ outcome.id }}" 
+                                          data-category="visual"
+                                          placeholder="Describe visual elements... (e.g., geometric, curved, bright, shadowy, patterns)"
+                                          rows="4"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <div class="action-group">
+                            <button type="button" class="btn btn-outline-neutral" onclick="saveBallDescriptors({{ loop.index }})">
+                                <i data-lucide="save"></i>
+                                Save Progress
+                            </button>
+                            <button type="button" class="btn btn-outline-warning" onclick="clearBallDescriptors({{ loop.index }})">
+                                <i data-lucide="refresh-cw"></i>
+                                Clear Form
+                            </button>
+                        </div>
+                        
+                        <div class="navigation-group">
+                            {% if loop.index > 1 %}
+                            <button type="button" class="btn btn-outline-neutral" onclick="previousBall()">
+                                <i data-lucide="chevron-left"></i>
+                                Previous Ball
+                            </button>
+                            {% endif %}
+                            
+                            {% if loop.index < outcomes|length %}
+                            <button type="button" class="btn btn-neutral" onclick="nextBall()">
+                                Next Ball
+                                <i data-lucide="chevron-right"></i>
+                            </button>
+                            {% else %}
+                            <button type="button" class="btn btn-success" onclick="completeSession()">
+                                <i data-lucide="check-circle"></i>
+                                Complete Session
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+            {% endfor %}
+
+            <!-- Session Summary -->
+            <div class="session-summary-card d-none" id="session-summary">
+                <div class="summary-header">
+                    <div class="success-icon">
+                        <i data-lucide="check-circle"></i>
+                    </div>
+                    <h2>ARV Session Complete</h2>
+                    <p>Your sensory impressions have been successfully recorded for all {{ outcomes|length }} balls.</p>
+                </div>
+
+                <div class="summary-stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-categories">0</div>
+                        <div class="stat-label">Categories Completed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ outcomes|length }}</div>
+                        <div class="stat-label">Balls Processed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-impressions">0</div>
+                        <div class="stat-label">Total Impressions</div>
+                    </div>
+                </div>
+
+                <div class="summary-actions">
+                    <a href="/trials/{{ trial.id }}" class="btn btn-neutral">
+                        <i data-lucide="eye"></i>
+                        View Trial Results
+                    </a>
+                    <a href="/trials" class="btn btn-outline-neutral">
+                        <i data-lucide="list"></i>
+                        All Trials
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* ARV Session Styles - Matching Trial Detail Design */
+.arv-header-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+}
+
+.arv-status-badge {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.session-indicator, .domain-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+}
+
+
+
+.arv-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.2;
+}
+
+.arv-description {
+    font-size: 1.125rem;
+    color: #6b7280;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.session-meta {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6b7280;
+    font-size: 0.95rem;
+}
+
+.session-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.progress-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.progress-label {
+    font-weight: 600;
+    color: #374151;
+}
+
+.progress-text {
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.progress-bar-container {
+    height: 8px;
+    background: #f3f4f6;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: #6b7280;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.navigation-card, .ball-form-card, .session-summary-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+    margin-bottom: 2rem;
+}
+
+.ball-selector h3 {
+    color: #111827;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.nav-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Ball navigation styles now in external CSS file */
+
+
+
+.ball-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.ball-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.ball-status i {
+    width: 16px;
+    height: 16px;
+}
+
+.ball-status .feather-circle {
+    color: #d1d5db;
+}
+
+.ball-nav-btn.completed .ball-status .feather-circle {
+    color: #6b7280;
+}
+
+.form-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.ball-info h2 {
+    color: #111827;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.ball-subtitle {
+    color: #6b7280;
+    margin: 0;
+}
+
+.status-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-badge.draft {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.status-badge.saved {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+}
+
+.sensory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.category-card {
+    background: #fafafa;
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.category-card:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.category-card.has-content {
+    border-color: #6b7280;
+    background: #f9fafb;
+}
+
+.category-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.category-icon {
+    width: 48px;
+    height: 48px;
+    background: #f3f4f6;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+}
+
+.category-info h4 {
+    color: #111827;
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+}
+
+.category-info p {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.descriptor-input {
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    resize: vertical;
+    transition: border-color 0.3s ease;
+}
+
+.descriptor-input:focus {
+    border-color: #6b7280;
+    box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1);
+}
+
+.descriptor-input.has-content {
+    border-color: #6b7280;
+    background: #fefefe;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding-top: 2rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.action-group, .navigation-group {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.session-summary-card {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.success-icon {
+    width: 80px;
+    height: 80px;
+    background: #f3f4f6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 2rem auto;
+    color: #6b7280;
+}
+
+.success-icon i {
+    width: 40px;
+    height: 40px;
+}
+
+.summary-header h2 {
+    color: #111827;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.summary-header p {
+    color: #6b7280;
+    font-size: 1.125rem;
+    margin-bottom: 2rem;
+}
+
+.summary-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: #6b7280;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.summary-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Button Styles */
+.btn-neutral {
+    background: #6b7280;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-neutral:hover {
+    background: #4b5563;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.btn-outline-neutral {
+    background: transparent;
+    color: #6b7280;
+    border: 2px solid #d1d5db;
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-outline-neutral:hover {
+    background: #6b7280;
+    color: white;
+    border-color: #6b7280;
+    transform: translateY(-1px);
+}
+
+.btn-outline-warning {
+    background: transparent;
+    color: #d97706;
+    border: 2px solid #fde68a;
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-outline-warning:hover {
+    background: #d97706;
+    color: white;
+    border-color: #d97706;
+    transform: translateY(-1px);
+}
+
+.btn-success {
+    background: #6b7280;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-success:hover {
+    background: #4b5563;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .arv-title {
+        font-size: 2rem;
+    }
+    
+    .session-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .sensory-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .new-ball-grid {
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .action-group, .navigation-group {
+        justify-content: center;
+    }
+    
+    .summary-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .summary-actions {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+// ARV Session JavaScript - Enhanced with modern functionality
+let currentBall = 1;
+let ballData = {};
+const totalBalls = {{ outcomes|length }};
+
+// Initialize ball data structure
+for (let i = 1; i <= totalBalls; i++) {
+    ballData[i] = {
+        colours: '',
+        tactile: '',
+        energy: '',
+        smell: '',
+        sound: '',
+        visual: '',
+        saved: false
+    };
+}
+
+function updateProgress() {
+    const progress = ((currentBall - 1) / totalBalls) * 100;
+    document.getElementById('progressBar').style.width = progress + '%';
+    document.getElementById('progressText').textContent = `Currently Viewing: Ball ${currentBall} of ${totalBalls}`;
+}
+
+function updateBallNavigation() {
+    console.log('Updating ball navigation, current ball:', currentBall);
+    
+    // Update navigation buttons
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    if (prevBtn) prevBtn.disabled = currentBall === 1;
+    if (nextBtn) nextBtn.disabled = currentBall === totalBalls;
+    
+    // Update ball navigation items
+    for (let i = 1; i <= totalBalls; i++) {
+        const item = document.getElementById(`ballItem${i}`);
+        if (item) {
+            // Remove existing classes
+            item.classList.remove('current-ball', 'completed');
+            
+            // Add current ball class
+            if (i === currentBall) {
+                item.classList.add('current-ball');
+                console.log(`Ball ${i} set as current`);
+            }
+            
+            // Add completed class if saved
+            if (ballData[i] && ballData[i].saved) {
+                item.classList.add('completed');
+            }
+            
+            // Update status icon
+            const statusIcon = document.getElementById(`ballStatusIcon${i}`);
+            if (statusIcon) {
+                if (ballData[i] && ballData[i].saved) {
+                    statusIcon.innerHTML = '<i data-lucide="check-circle"></i>';
+                } else {
+                    statusIcon.innerHTML = '<i data-lucide="circle"></i>';
+                }
+            }
+        }
+    }
+    
+    if (typeof window.initializeLucideIcons === 'function') {
+        window.initializeLucideIcons();
+    }
+}
+
+function selectBall(ballNumber) {
+    console.log(`selectBall called with ballNumber: ${ballNumber}`);
+    
+    if (ballNumber === currentBall) {
+        console.log('Already on this ball, no action needed');
+        return;
+    }
+    
+    // Save current ball data
+    saveBallData(currentBall);
+    
+    // Hide current ball form
+    const currentForm = document.getElementById(`ball-${currentBall}`);
+    if (currentForm) {
+        currentForm.classList.add('d-none');
+    }
+    
+    // Update current ball
+    currentBall = ballNumber;
+    
+    // Show new ball form
+    const newForm = document.getElementById(`ball-${currentBall}`);
+    if (newForm) {
+        newForm.classList.remove('d-none');
+    }
+    
+    // Load data for new ball
+    loadBallData(currentBall);
+    
+    // Update UI
+    updateProgress();
+    updateBallNavigation();
+    
+    // Smooth scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Keep the old function name for backward compatibility
+function goToBall(ballNumber) {
+    selectBall(ballNumber);
+}
+
+function nextBall() {
+    if (currentBall < totalBalls) {
+        selectBall(currentBall + 1);
+    }
+}
+
+function previousBall() {
+    if (currentBall > 1) {
+        selectBall(currentBall - 1);
+    }
+}
+
+function loadBallData(ballNumber) {
+    const form = document.querySelector(`[data-ball="${ballNumber}"]`);
+    const data = ballData[ballNumber];
+    
+    for (const category in data) {
+        if (category !== 'saved') {
+            const input = form.querySelector(`[data-category="${category}"]`);
+            if (input) {
+                input.value = data[category];
+                updateCategoryStatus(input);
+            }
+        }
+    }
+    
+    // Update form status badge
+    const statusBadge = document.getElementById(`formStatus${ballNumber}`);
+    if (data.saved) {
+        statusBadge.innerHTML = '<span class="status-badge saved"><i data-lucide="check"></i>Saved</span>';
+    } else {
+        statusBadge.innerHTML = '<span class="status-badge draft"><i data-lucide="edit"></i>Draft</span>';
+    }
+    
+    window.initializeLucideIcons();
+}
+
+function saveBallData(ballNumber) {
+    const form = document.querySelector(`[data-ball="${ballNumber}"]`);
+    const inputs = form.querySelectorAll('.descriptor-input');
+    
+    inputs.forEach(input => {
+        const category = input.dataset.category;
+        ballData[ballNumber][category] = input.value.trim();
+    });
+}
+
+function saveBallDescriptors(ballNumber) {
+    saveBallData(ballNumber);
+    
+    // Check if any field has content
+    const data = ballData[ballNumber];
+    const hasContent = Object.keys(data).some(key => 
+        key !== 'saved' && data[key] && data[key].trim().length > 0
+    );
+    
+    if (hasContent) {
+        ballData[ballNumber].saved = true;
+        
+        // Submit to server
+        const formData = new FormData();
+        formData.append('ball_number', ballNumber);
+        
+        Object.keys(data).forEach(category => {
+            if (category !== 'saved') {
+                formData.append(category, data[category]);
+            }
+        });
+        
+        fetch(`/api/trials/{{ trial.id }}/arv-descriptors`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                showToast('Ball descriptors saved successfully!', 'success');
+                updateBallNavigation();
+                loadBallData(ballNumber);
+            } else {
+                showToast(result.message || 'Error saving descriptors', 'error');
+            }
+        })
+        .catch(error => {
+            showToast('Network error. Data saved locally.', 'warning');
+            updateBallNavigation();
+            loadBallData(ballNumber);
+        });
+    } else {
+        showToast('Please add some descriptors before saving', 'warning');
+    }
+}
+
+function clearBallDescriptors(ballNumber) {
+    if (confirm('Are you sure you want to clear all descriptors for this ball?')) {
+        // Clear form inputs
+        const form = document.querySelector(`[data-ball="${ballNumber}"]`);
+        const inputs = form.querySelectorAll('.descriptor-input');
+        
+        inputs.forEach(input => {
+            input.value = '';
+            updateCategoryStatus(input);
+        });
+        
+        // Clear ball data
+        for (const category in ballData[ballNumber]) {
+            if (category !== 'saved') {
+                ballData[ballNumber][category] = '';
+            }
+        }
+        ballData[ballNumber].saved = false;
+        
+        // Update UI
+        updateBallNavigation();
+        loadBallData(ballNumber);
+        
+        showToast('Ball descriptors cleared', 'info');
+    }
+}
+
+function completeSession() {
+    // Save current ball data
+    saveBallData(currentBall);
+    
+    // Calculate session statistics
+    let totalCategories = 0;
+    let totalImpressions = 0;
+    
+    Object.values(ballData).forEach(ball => {
+        for (let category in ball) {
+            if (category !== 'saved' && ball[category].trim()) {
+                totalCategories++;
+                totalImpressions += ball[category].split(/\s+/).length;
+            }
+        }
+    });
+    
+    // Update summary statistics
+    document.getElementById('total-categories').textContent = totalCategories;
+    document.getElementById('total-impressions').textContent = totalImpressions;
+    
+    // Hide current ball and show summary
+    document.getElementById(`ball-${currentBall}`).classList.add('d-none');
+    document.getElementById('session-summary').classList.remove('d-none');
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    showToast('ARV session completed successfully!', 'success');
+}
+
+function updateCategoryStatus(input) {
+    const card = input.closest('.category-card');
+    const hasContent = input.value.trim().length > 0;
+    
+    card.classList.toggle('has-content', hasContent);
+    input.classList.toggle('has-content', hasContent);
+}
+
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'error' ? 'danger' : type === 'warning' ? 'warning' : type === 'success' ? 'success' : 'info'} position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);';
+    toast.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i data-lucide="${type === 'success' ? 'check' : type === 'error' ? 'x' : type === 'warning' ? 'alert-triangle' : 'info'}" class="me-2"></i>
+            ${message}
+            <button type="button" class="btn-close ms-auto" onclick="this.parentElement.parentElement.remove()"></button>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    window.initializeLucideIcons();
+    
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.remove();
+        }
+    }, 5000);
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    // Set up input listeners for visual feedback
+    document.querySelectorAll('.descriptor-input').forEach(input => {
+        input.addEventListener('input', function() {
+            updateCategoryStatus(this);
+        });
+    });
+    
+    // Check URL parameter for direct ball navigation
+    const urlParams = new URLSearchParams(window.location.search);
+    const ballParam = urlParams.get('ball');
+    if (ballParam) {
+        const ballNumber = parseInt(ballParam);
+        if (ballNumber >= 1 && ballNumber <= totalBalls) {
+            updateProgress();
+            loadBallData(ballNumber);
+            goToBall(ballNumber);
+            return;
+        }
+    }
+    
+    // Initialize first ball (default)
+    updateProgress();
+    updateBallNavigation();
+    loadBallData(1);
+    
+    // Initialize Lucide icons
+    if (typeof window.initializeLucideIcons === 'function') {
+        window.initializeLucideIcons();
+    }
+});
+
+// Auto-save functionality (save draft every 30 seconds)
+setInterval(function() {
+    saveBallData(currentBall);
+}, 30000);
+</script>
+{% endblock %}

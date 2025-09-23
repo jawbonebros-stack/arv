@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Prediction Tasks - ARVLab{% endblock %}
+
+{% block breadcrumb_items %},
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Tasks",
+                "item": "https://arvlab.xyz/trials"
+            }{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active" aria-current="page">
+    <i data-lucide="target" style="width: 16px; height: 16px;" class="me-1"></i>
+    Tasks
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1><i data-lucide="target"></i> Prediction Tasks</h1>
+        <p class="lead mb-0">Participate in associative remote viewing prediction tasks.</p>
+    </div>
+    {% if user %}
+    <div class="text-end">
+        <a href="/trials/create" class="btn btn-secondary btn-lg">
+            <i data-lucide="plus"></i> Create ARV Task
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="text-muted">Draft</h6>
+                <h4 class="text-secondary">{{ trials | selectattr("status", "equalto", "draft") | list | length }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="text-muted">Open</h6>
+                <h4 class="text-secondary">{{ trials | selectattr("status", "equalto", "open") | list | length }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="text-muted">Live</h6>
+                <h4 class="text-secondary">{{ trials | selectattr("status", "equalto", "live") | list | length }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="text-muted">Settled</h6>
+                <h4 class="text-secondary">{{ trials | selectattr("status", "equalto", "settled") | list | length }}</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if trials %}
+<div class="row">
+    {% for trial in trials %}
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="badge bg-secondary">
+                    {{ trial.status.upper() }}
+                </span>
+                <small class="text-muted">{{ trial.domain.title() }}</small>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title">{{ trial.title }}</h5>
+                    <span class="badge bg-light text-dark">
+                        <i data-lucide="hash" style="width: 12px; height: 12px;"></i>
+                        {{ trial.target_number or 'TBD' }}
+                    </span>
+                </div>
+                
+                {% set event_spec = trial.event_spec_json | from_json %}
+                <p class="card-text">{{ event_spec.get('description', 'No description available') }}</p>
+                
+                <div class="row text-center mb-3">
+                    <div class="col">
+                        <small class="text-muted">Result Time</small><br>
+                        <strong>{{ trial.result_time_utc.strftime('%Y-%m-%d %H:%M UTC') }}</strong>
+                    </div>
+                    <div class="col">
+                        <small class="text-muted">Market Type</small><br>
+                        <strong>{{ trial.market_type.title() }}</strong>
+                    </div>
+                </div>
+                
+                {% if trial.status == 'open' and trial.live_end_utc %}
+                <div class="alert alert-success">
+                    <i data-lucide="clock"></i>
+                    <strong>Live until:</strong> {{ trial.live_end_utc.strftime('%H:%M:%S UTC') }}
+                </div>
+                {% endif %}
+                
+                <a href="/trials/{{ trial.id }}" class="btn btn-secondary">
+                    <i data-lucide="eye"></i>
+                    View Task
+                </a>
+                
+                {% if user and user.is_admin and trial.status == 'draft' %}
+                <button class="btn btn-secondary btn-sm" onclick="startTask({{ trial.id }})">
+                    <i data-lucide="play"></i>
+                    Start
+                </button>
+                {% endif %}
+            </div>
+            <div class="card-footer text-muted">
+                <small>Created {{ trial.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5">
+    <div class="mb-4">
+        <i data-lucide="target" class="text-muted" style="width: 64px; height: 64px;"></i>
+    </div>
+    <h3 class="text-muted">No ARV Tasks Yet</h3>
+    <p class="text-muted mb-4">Get started by creating your first prediction task with targets and outcomes.</p>
+    
+    {% if user %}
+    <div class="empty-state-actions">
+        <a href="/trials/create" class="btn btn-secondary btn-lg me-3">
+            <i data-lucide="plus" class="me-2"></i>
+            Create Your First Task
+        </a>
+        {% if user.is_admin %}
+        <a href="/targets" class="btn btn-outline-secondary">
+            <i data-lucide="image" class="me-2"></i>
+            Manage Targets
+        </a>
+        {% endif %}
+    </div>
+    {% else %}
+    <p class="text-muted">
+        <i data-lucide="info" class="me-2"></i>
+        Please log in to create and participate in tasks.
+    </p>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function startTask(trialId) {
+    try {
+        const response = await fetch(`/trials/${trialId}/start`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Failed to start task');
+        }
+    } catch (error) {
+        console.error('Error starting task:', error);
+        alert('Error starting task');
+    }
+}
+</script>
+{% endblock %}

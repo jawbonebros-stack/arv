@@ -1,0 +1,854 @@
+{% extends "base.html" %}
+
+{% block title %}{{ trial.title }} - Quorum{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Trial Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="trial-header-card">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div class="trial-info flex-grow-1">
+                        <div class="trial-status-badge mb-3">
+                            <span class="status-indicator {{ trial.status.lower() }}">
+                                <i data-lucide="{% if trial.status == 'draft' %}edit-3{% elif trial.status == 'open' %}play{% elif trial.status == 'live' %}zap{% else %}check-circle{% endif %}"></i>
+                                {{ trial.status.title() }}
+                            </span>
+                            <span class="domain-badge">
+                                <i data-lucide="target"></i>
+                                {{ trial.domain.title() }}
+                            </span>
+                        </div>
+                        
+                        <h1 class="trial-title mb-3">{{ trial.title }}</h1>
+                        
+                        {% set event_spec = trial.event_spec_json | from_json %}
+                        {% if event_spec and event_spec.get('description') %}
+                        <p class="trial-description">{{ event_spec.get('description') }}</p>
+                        {% endif %}
+                        
+                        <div class="trial-meta">
+                            <div class="meta-item">
+                                <i data-lucide="calendar"></i>
+                                <span>Result: {{ trial.result_time_utc.strftime('%B %d, %Y at %H:%M UTC') }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i data-lucide="layers"></i>
+                                <span>{{ trial.market_type.title() }} Market</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Admin Controls -->
+                    {% if user and (user.is_admin or trial.created_by == user.id) %}
+                    <div class="admin-actions">
+                        {% if trial.status == 'draft' %}
+                        <button class="btn btn-neutral btn-lg" onclick="startTrial({{ trial.id }})">
+                            <i data-lucide="play"></i>
+                            Start Trial
+                        </button>
+                        {% endif %}
+                        
+                        {% if user.is_admin or (trial.created_by == user.id and trial.status == 'draft') %}
+                        <a href="/trials/{{ trial.id }}/edit" class="btn btn-outline-neutral">
+                            <i data-lucide="edit"></i>
+                            Edit
+                        </a>
+                        {% endif %}
+                        
+                        {% if user.is_admin and trial.status != 'draft' %}
+                        <button class="btn btn-outline-danger" onclick="confirmDeleteTrial()">
+                            <i data-lucide="trash-2"></i>
+                            Delete
+                        </button>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Live Timer -->
+                {% if trial.status == 'live' and trial.live_end_utc %}
+                <div class="live-timer-card">
+                    <div class="d-flex align-items-center">
+                        <div class="live-indicator"></div>
+                        <div>
+                            <strong>Live Session Active</strong>
+                            <div class="timer-text" id="liveTimer" data-end="{{ trial.live_end_utc.isoformat() }}">
+                                Calculating...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="row">
+        <!-- Outcomes Section -->
+        <div class="col-lg-8 mb-4">
+            <div class="outcomes-section">
+                <div class="section-header">
+                    <h2>
+                        <i data-lucide="target"></i>
+                        Prediction Outcomes
+                        {% if trial.status == 'settled' and result and winning_outcome_id %}
+                        <span class="settled-badge">Settled</span>
+                        {% endif %}
+                    </h2>
+                    {% if trial.domain == 'lottery' and trial.status in ['open', 'live'] %}
+                    <a href="/trials/{{ trial.id }}/arv-wizard" class="btn btn-outline-neutral">
+                        <i data-lucide="eye"></i>
+                        ARV Session
+                    </a>
+                    {% endif %}
+                </div>
+
+                <div class="outcomes-grid">
+                    {% for outcome in outcomes %}
+                    {% if not (trial.status == 'settled' and result and winning_outcome_id and outcome.id != winning_outcome_id) %}
+                    <div class="outcome-card {% if trial.status == 'settled' and result and winning_outcome_id == outcome.id %}winner{% endif %}">
+                        <div class="outcome-header">
+                            <h3>{{ outcome.label }}</h3>
+                            {% if trial.status == 'settled' and result and winning_outcome_id == outcome.id %}
+                            <div class="winner-badge">
+                                <i data-lucide="award"></i>
+                                Winner
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        {% if targets_by_outcome.get(outcome.id) %}
+                        <div class="targets-container">
+                            {% for target in targets_by_outcome[outcome.id] %}
+                            <div class="target-item">
+                                {% if user and (user.is_admin or (trial.created_by == user.id)) %}
+                                    {% if trial.status in ['draft', 'open', 'live'] %}
+                                    <!-- Protected View -->
+                                    <div class="protected-target" onclick="revealTargetImageAdmin(this)">
+                                        <div class="protection-overlay">
+                                            <i data-lucide="eye-off"></i>
+                                            <span>Click to Reveal</span>
+                                            <small>Admin/Creator View</small>
+                                        </div>
+                                        <img src="{% if target.uri.startswith('http') %}{{ target.uri }}{% elif target.uri.startswith('static/') %}/{{ target.uri }}{% elif target.uri.startsWith('/') %}{{ target.uri }}{% else %}/static/{{ target.uri }}{% endif %}" 
+                                             alt="{{ target.description }}" 
+                                             class="hidden-target-image" />
+                                    </div>
+                                    {% else %}
+                                    <!-- Settled - Show Image -->
+                                    <img src="{% if target.uri.startswith('http') %}{{ target.uri }}{% elif target.uri.startswith('static/') %}/{{ target.uri }}{% elif target.uri.startsWith('/') %}{{ target.uri }}{% else %}/static/{{ target.uri }}{% endif %}" 
+                                         alt="{{ target.description }}" 
+                                         class="target-image"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                    <div class="image-fallback" style="display: none;">
+                                        <i data-lucide="image"></i>
+                                        <span>Image not available</span>
+                                    </div>
+                                    {% endif %}
+                                {% else %}
+                                    {% if trial.status == 'settled' %}
+                                    <!-- Public settled view -->
+                                    <img src="{% if target.uri.startswith('http') %}{{ target.uri }}{% elif target.uri.startswith('static/') %}/{{ target.uri }}{% elif target.uri.startsWith('/') %}{{ target.uri }}{% else %}/static/{{ target.uri }}{% endif %}" 
+                                         alt="{{ target.description }}" 
+                                         class="target-image"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                    <div class="image-fallback" style="display: none;">
+                                        <i data-lucide="image"></i>
+                                        <span>Image not available</span>
+                                    </div>
+                                    {% else %}
+                                    <!-- Protected placeholder -->
+                                    <div class="target-placeholder">
+                                        <i data-lucide="shield"></i>
+                                        <span>Target Hidden</span>
+                                        <small>ARV Protocol</small>
+                                    </div>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Prediction Actions -->
+                        {% if trial.status == 'open' and user %}
+                        <div class="prediction-actions">
+                            <button class="btn btn-neutral" onclick="openPredictionModal('{{ outcome.id }}', '{{ outcome.label }}')">
+                                <i data-lucide="trending-up"></i>
+                                Make Prediction
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            {% if user %}
+            <div class="sidebar-card mb-4">
+                <h3>Quick Actions</h3>
+                <div class="action-buttons">
+                    {% if trial.status == 'open' %}
+                    <button class="btn btn-neutral btn-block" onclick="showAllPredictions()">
+                        <i data-lucide="trending-up"></i>
+                        Make Predictions
+                    </button>
+                    {% endif %}
+                    
+                    {% if trial.domain == 'lottery' and trial.status in ['open', 'live'] %}
+                    <a href="/trials/{{ trial.id }}/arv-wizard" class="btn btn-outline-neutral btn-block">
+                        <i data-lucide="eye"></i>
+                        Start ARV Session
+                    </a>
+                    {% endif %}
+                    
+                    <button class="btn btn-outline-neutral btn-block" onclick="viewDescriptors()">
+                        <i data-lucide="list"></i>
+                        View Descriptors
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Trial Statistics -->
+            <div class="sidebar-card mb-4">
+                <h3>Trial Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number">{{ predictions|length }}</div>
+                        <div class="stat-label">Total Predictions</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ participants|length }}</div>
+                        <div class="stat-label">Participants</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ outcomes|length }}</div>
+                        <div class="stat-label">Possible Outcomes</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ descriptors|length if descriptors else 0 }}</div>
+                        <div class="stat-label">Descriptors</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            {% if recent_activity %}
+            <div class="sidebar-card">
+                <h3>Recent Activity</h3>
+                <div class="activity-list">
+                    {% for activity in recent_activity[:5] %}
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i data-lucide="{% if activity.type == 'prediction' %}trending-up{% elif activity.type == 'descriptor' %}edit{% else %}activity{% endif %}"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">{{ activity.description }}</div>
+                            <div class="activity-time">{{ activity.timestamp.strftime('%H:%M') }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Prediction Modal -->
+<div class="modal fade" id="predictionModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Make Prediction</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="predictionForm">
+                    <input type="hidden" id="outcomeId" name="outcome_id">
+                    <div class="mb-3">
+                        <label class="form-label">Predicting for outcome:</label>
+                        <div class="selected-outcome" id="selectedOutcome"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confidence" class="form-label">Confidence Level</label>
+                        <input type="range" class="form-range" id="confidence" name="confidence" 
+                               min="1" max="10" value="5" oninput="updateConfidenceDisplay(this.value)">
+                        <div class="d-flex justify-content-between">
+                            <small>Low (1)</small>
+                            <span id="confidenceDisplay">5</span>
+                            <small>High (10)</small>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reasoning" class="form-label">Reasoning (Optional)</label>
+                        <textarea class="form-control" id="reasoning" name="reasoning" rows="3" 
+                                  placeholder="Share your reasoning for this prediction..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-neutral" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-neutral" onclick="submitPrediction()">Submit Prediction</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Trial Detail Page Styles */
+.trial-header-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+}
+
+.trial-status-badge {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.status-indicator, .domain-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+}
+
+.status-indicator.open { background: #f0f9ff; color: #0c4a6e; border-color: #bae6fd; }
+.status-indicator.live { background: #f0fdf4; color: #14532d; border-color: #bbf7d0; }
+.status-indicator.settled { background: #fafaf9; color: #292524; border-color: #e7e5e4; }
+.status-indicator.draft { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+
+.trial-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.2;
+}
+
+.trial-description {
+    font-size: 1.125rem;
+    color: #6b7280;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.trial-meta {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6b7280;
+    font-size: 0.95rem;
+}
+
+.admin-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.live-timer-card {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border: 1px solid #bbf7d0;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-top: 1.5rem;
+}
+
+.live-indicator {
+    width: 12px;
+    height: 12px;
+    background: #ef4444;
+    border-radius: 50%;
+    margin-right: 0.75rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.outcomes-section {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+}
+
+.section-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.section-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #111827;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.settled-badge {
+    background: #f3f4f6;
+    color: #374151;
+    padding: 0.25rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid #e5e7eb;
+}
+
+.outcomes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.outcome-card {
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 1.5rem;
+    background: #fafafa;
+    transition: all 0.3s ease;
+}
+
+.outcome-card:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.outcome-card.winner {
+    border-color: #a3a3a3;
+    background: linear-gradient(135deg, #f9f9f9 0%, #f3f4f6 100%);
+}
+
+.outcome-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.outcome-header h3 {
+    color: #111827;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.winner-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #6b7280;
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.targets-container {
+    margin-bottom: 1rem;
+}
+
+.target-item img.target-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+}
+
+.protected-target {
+    position: relative;
+    cursor: pointer;
+    border-radius: 12px;
+    overflow: hidden;
+    height: 200px;
+    background: #f9fafb;
+    border: 2px dashed #d1d5db;
+}
+
+.protection-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(243, 244, 246, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #6b7280;
+}
+
+.target-placeholder {
+    height: 200px;
+    background: #f9fafb;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+}
+
+.image-fallback {
+    height: 200px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+}
+
+.prediction-actions {
+    margin-top: 1rem;
+}
+
+.sidebar-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+}
+
+.sidebar-card h3 {
+    color: #111827;
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.activity-icon {
+    width: 32px;
+    height: 32px;
+    background: #f3f4f6;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-text {
+    font-size: 0.875rem;
+    color: #374151;
+}
+
+.activity-time {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+.btn-neutral {
+    background: #6b7280;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-neutral:hover {
+    background: #4b5563;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.btn-outline-neutral {
+    background: transparent;
+    color: #6b7280;
+    border: 2px solid #d1d5db;
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-neutral:hover {
+    background: #6b7280;
+    color: white;
+    border-color: #6b7280;
+    transform: translateY(-1px);
+}
+
+.btn-block {
+    width: 100%;
+}
+
+.selected-outcome {
+    background: #f3f4f6;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .trial-title {
+        font-size: 2rem;
+    }
+    
+    .trial-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .outcomes-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .admin-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+</style>
+
+<script>
+// Live timer functionality
+function updateLiveTimer() {
+    const timerElement = document.getElementById('liveTimer');
+    if (!timerElement) return;
+    
+    const endTime = new Date(timerElement.dataset.end);
+    const now = new Date();
+    const timeLeft = endTime - now;
+    
+    if (timeLeft <= 0) {
+        timerElement.innerHTML = 'Session Ended';
+        return;
+    }
+    
+    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+    
+    timerElement.innerHTML = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} remaining`;
+}
+
+// Update timer every second
+setInterval(updateLiveTimer, 1000);
+updateLiveTimer();
+
+// Prediction modal functions
+function openPredictionModal(outcomeId, outcomeLabel) {
+    document.getElementById('outcomeId').value = outcomeId;
+    document.getElementById('selectedOutcome').textContent = outcomeLabel;
+    new bootstrap.Modal(document.getElementById('predictionModal')).show();
+}
+
+function updateConfidenceDisplay(value) {
+    document.getElementById('confidenceDisplay').textContent = value;
+}
+
+function submitPrediction() {
+    const form = document.getElementById('predictionForm');
+    const formData = new FormData(form);
+    
+    fetch(`/api/trials/{{ trial.id }}/predictions`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('predictionModal')).hide();
+            showToast('Prediction submitted successfully!', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showToast(data.message || 'Error submitting prediction', 'error');
+        }
+    })
+    .catch(error => {
+        showToast('Network error. Please try again.', 'error');
+    });
+}
+
+// Admin functions
+function revealTargetImageAdmin(element) {
+    const overlay = element.querySelector('.protection-overlay');
+    const image = element.querySelector('.hidden-target-image');
+    
+    overlay.style.display = 'none';
+    image.style.display = 'block';
+    image.classList.remove('hidden-target-image');
+    image.classList.add('target-image');
+}
+
+function startTrial(trialId) {
+    if (confirm('Are you sure you want to start this trial? This action cannot be undone.')) {
+        fetch(`/api/trials/${trialId}/start`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Trial started successfully!', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showToast(data.message || 'Error starting trial', 'error');
+            }
+        })
+        .catch(error => {
+            showToast('Network error. Please try again.', 'error');
+        });
+    }
+}
+
+function confirmDeleteTrial() {
+    if (confirm('Are you sure you want to delete this trial? This action cannot be undone.')) {
+        fetch(`/api/trials/{{ trial.id }}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Trial deleted successfully!', 'success');
+                setTimeout(() => window.location.href = '/trials', 1500);
+            } else {
+                showToast(data.message || 'Error deleting trial', 'error');
+            }
+        })
+        .catch(error => {
+            showToast('Network error. Please try again.', 'error');
+        });
+    }
+}
+
+// Utility functions
+function showToast(message, type = 'info') {
+    // Create toast notification
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'secondary'} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    toast.addEventListener('hidden.bs.toast', () => {
+        document.body.removeChild(toast);
+    });
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize all tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Initialize Lucide icons
+    if (typeof window.initializeLucideIcons === 'function') {
+        window.initializeLucideIcons();
+    }
+});
+</script>
+{% endblock %}

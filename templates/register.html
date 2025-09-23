@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Join Elite Remote Viewing Research - ARVLab Registration{% endblock %}
+
+{% block description %}Join ARVLab's advanced remote viewing platform for experienced practitioners. Access professional ARV protocols, cutting-edge research tools, and connect with elite consciousness researchers worldwide.{% endblock %}
+
+{% block keywords %}join remote viewing platform, ARV registration, experienced remote viewers signup, professional consciousness research, advanced remote viewing community, ARV practitioners network, elite RV training{% endblock %}
+
+{% block og_description %}Register to join the world's most advanced platform for experienced remote viewers and ARV practitioners. Access professional-grade research tools and elite protocols.{% endblock %}
+
+{% block robots %}noindex, nofollow{% endblock %}
+
+{% block canonical %}<link rel="canonical" href="https://arvlab.xyz/">{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title text-center mb-4">
+                    <i data-lucide="user-plus"></i>
+                    Join Elite Remote Viewing Research
+                </h4>
+                
+                <div class="text-center mb-4">
+                    <p class="text-muted">Access advanced ARV protocols and professional research tools</p>
+                </div>
+
+                {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    <i data-lucide="alert-circle"></i>
+                    {{ error }}
+                </div>
+                {% endif %}
+
+                <div class="alert alert-info" role="alert">
+                    <i data-lucide="info"></i>
+                    <strong>Auto-Generated Username:</strong> We'll create a unique Reddit-style username for you automatically (like "ProViewer_2023" or "QuantumSeer_42").
+                </div>
+
+                <div class="alert alert-info" role="alert">
+                    <i data-lucide="target"></i>
+                    <strong>Professional Platform:</strong> ARVLab serves experienced remote viewers, 
+                    consciousness researchers, and ARV practitioners seeking advanced scientific protocols.
+                </div>
+
+                <form method="post">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="referral_code" class="form-label">Referral Code <span class="text-muted">(optional)</span></label>
+                        <input type="text" class="form-control" id="referral_code" name="referral_code" 
+                               value="{{ referral_code or '' }}" 
+                               placeholder="Enter referral code for bonus credits" 
+                               style="text-transform: uppercase;">
+                        <div class="form-text">
+                            <i data-lucide="gift" style="width: 14px; height: 14px;"></i>
+                            Have a referral code? Get 5 bonus credits!
+                        </div>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="terms" required>
+                        <label class="form-check-label" for="terms">
+                            I understand this is an experimental platform for research and entertainment only
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">Register</button>
+                </form>
+
+                <hr>
+                <div class="text-center">
+                    <p class="text-muted">Already have an account?</p>
+                    <a href="/login" class="btn btn-outline-secondary">Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

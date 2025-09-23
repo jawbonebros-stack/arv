@@ -1,0 +1,587 @@
+{% extends "base.html" %}
+
+{% block title %}{{ trial.title }} - Foresight ARV{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+    <!-- Clean Header Design -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="h3 mb-0 fw-bold">{{ trial.title }}</h1>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="trial-status {{ trial.status.lower() }}">{{ trial.status.upper() }}</span>
+                    {% if user and user.is_admin and trial.status == 'draft' %}
+                    <div class="admin-controls d-flex gap-2">
+                        <a href="/trials/{{ trial.id }}/start" class="btn btn-success btn-sm">
+                            <i data-lucide="play" style="width: 14px; height: 14px;"></i> Start
+                        </a>
+                        <a href="/trials/{{ trial.id }}/edit" class="btn btn-outline-primary btn-sm">
+                            <i data-lucide="edit" style="width: 14px; height: 14px;"></i> Edit
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Compact Info Box -->
+            <div class="info-box p-3 mb-4">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="info-item">
+                            <i data-lucide="tag" class="me-2"></i>
+                            <strong>Domain:</strong> {{ trial.domain.title() }}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-item">
+                            <i data-lucide="calendar" class="me-2"></i>
+                            <strong>Status:</strong> {{ trial.status.title() }}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-item">
+                            <i data-lucide="clock" class="me-2"></i>
+                            <strong>Ends:</strong> {{ trial.live_end_utc.strftime('%Y-%m-%d %H:%M UTC') if trial.live_end_utc else 'TBD' }}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-item">
+                            <i data-lucide="target" class="me-2"></i>
+                            <strong>Result:</strong> {{ trial.result_time_utc.strftime('%Y-%m-%d %H:%M UTC') if trial.result_time_utc else 'TBD' }}
+                        </div>
+                    </div>
+                </div>
+                
+                {% set event_spec = trial.event_spec_json | from_json %}
+                {% if event_spec and event_spec.get('description') %}
+                <div class="mt-3 pt-3 border-top">
+                    <strong>Description:</strong> {{ event_spec.get('description') }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Outcomes Grid - Compact Design -->
+    <div class="row mb-4">
+        {% for outcome in outcomes %}
+        <div class="col-md-4 mb-3">
+            <div class="outcome-card-compact">
+                <div class="outcome-header-compact">
+                    <h6 class="outcome-title-compact">{{ outcome.label }}</h6>
+                </div>
+                <div class="outcome-content-compact">
+                    {% if targets_by_outcome.get(outcome.id) %}
+                        {% for target in targets_by_outcome[outcome.id] %}
+                        <div class="target-display-compact">
+                            {% if user and not user.is_admin and trial.status in ['draft', 'open', 'live'] %}
+                            <!-- Protection Overlay -->
+                            <div class="protected-target-compact" onclick="revealTargetImage(this)">
+                                <div class="protection-overlay-compact">
+                                    <i data-lucide="eye-off" class="protection-icon-compact"></i>
+                                    <div class="protection-text-compact">Target<br>Protected</div>
+                                    <div class="protection-hint-compact">Click to reveal with<br>authentication</div>
+                                </div>
+                                <img src="/static/{{ target.uri }}" alt="{{ target.description }}" class="hidden-target-image" style="display: none;" />
+                            </div>
+                            {% else %}
+                            <!-- Normal view -->
+                            <div class="target-image-container-compact">
+                                <img src="/static/{{ target.uri }}" alt="{{ target.description }}" class="target-image-compact" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                <div class="image-fallback-compact" style="display: none;">
+                                    <i data-lucide="image" class="fallback-icon-compact"></i>
+                                    <span class="fallback-text-compact">{{ target.description or 'Image unavailable' }}</span>
+                                </div>
+                            </div>
+                            <div class="admin-debug-info" style="font-size: 0.75rem; color: #666; margin-top: 0.5rem;">
+                                <strong>Debug:</strong> {{ target.uri }} | Admin: {{ user.is_admin if user else 'No user' }}
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Action Button -->
+                            <div class="target-action-compact">
+                                {% if user and not user.is_admin and trial.status in ['draft', 'open', 'live'] %}
+                                <button class="btn btn-warning btn-sm w-100" onclick="revealTags(this.parentElement.parentElement)">
+                                    Reveal Target Information
+                                </button>
+                                <div class="actual-tags-compact" style="display: none;">
+                                    {% if target.tags %}
+                                        {% for tag in target.tags.split(',') if tag.strip() %}
+                                        <span class="badge bg-secondary me-1">{{ tag.strip() }}</span>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                                {% else %}
+                                <div class="tags-list-compact">
+                                    {% if target.tags %}
+                                        {% for tag in target.tags.split(',') if tag.strip() %}
+                                        <span class="badge bg-secondary me-1">{{ tag.strip() }}</span>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="no-target-compact">
+                            <i data-lucide="image" class="no-target-icon-compact"></i>
+                            <p class="no-target-text-compact">No target assigned</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+            <!-- Streamlined Descriptors -->
+            {% if user and trial.status in ['open', 'live'] %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i data-lucide="edit-3" class="me-2"></i>Remote Viewing Session</h5>
+                </div>
+                <div class="card-body">
+                    <!-- ARV Guidance -->
+                    <div class="alert alert-info mb-4">
+                        <i data-lucide="info" class="me-2"></i>
+                        <strong>Remote Viewing Protocol:</strong> Focus on immediate perceptions without analysis. 
+                        Describe what you sense across different sensory channels.
+                    </div>
+                    
+                    <!-- Simplified Tab System -->
+                    <div class="descriptor-tabs mb-3">
+                        <ul class="nav nav-pills nav-justified" id="descriptorTabs" role="tablist">
+                            <li class="nav-item">
+                                <button class="nav-link active" id="tab-all" data-bs-toggle="pill" data-bs-target="#content-all" type="button" role="tab">
+                                    All
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" id="tab-colours" data-bs-toggle="pill" data-bs-target="#content-colours" type="button" role="tab">
+                                    <i data-lucide="droplet" style="width: 14px; height: 14px;"></i> Colours
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" id="tab-tactile" data-bs-toggle="pill" data-bs-target="#content-tactile" type="button" role="tab">
+                                    <i data-lucide="hand" style="width: 14px; height: 14px;"></i> Tactile
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" id="tab-energy" data-bs-toggle="pill" data-bs-target="#content-energy" type="button" role="tab">
+                                    <i data-lucide="zap" style="width: 14px; height: 14px;"></i> Energy
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" id="tab-smell" data-bs-toggle="pill" data-bs-target="#content-smell" type="button" role="tab">
+                                    <i data-lucide="wind" style="width: 14px; height: 14px;"></i> Smell
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" id="tab-sound" data-bs-toggle="pill" data-bs-target="#content-sound" type="button" role="tab">
+                                    <i data-lucide="volume-2" style="width: 14px; height: 14px;"></i> Sound
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" id="tab-visual" data-bs-toggle="pill" data-bs-target="#content-visual" type="button" role="tab">
+                                    <i data-lucide="eye" style="width: 14px; height: 14px;"></i> Visual
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content" id="descriptorTabContent">
+                        <!-- All Descriptors Tab -->
+                        <div class="tab-pane fade show active" id="content-all" role="tabpanel">
+                            <!-- Populated by JavaScript -->
+                        </div>
+
+                        <!-- Category-specific tabs with simplified forms -->
+                        <div class="tab-pane fade" id="content-colours" role="tabpanel">
+                            <div class="descriptor-form-card">
+                                <form class="descriptor-form" data-category="colours">
+                                    <div class="form-group">
+                                        <label class="form-label">Colour Perceptions</label>
+                                        <textarea class="form-control" name="text" rows="3" placeholder="Describe any colours you perceive..."></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i data-lucide="plus"></i> Add Description
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="descriptors-list" data-category="colours"></div>
+                        </div>
+
+                        <div class="tab-pane fade" id="content-tactile" role="tabpanel">
+                            <div class="descriptor-form-card">
+                                <form class="descriptor-form" data-category="tactile">
+                                    <div class="form-group">
+                                        <label class="form-label">Tactile Sensations</label>
+                                        <textarea class="form-control" name="text" rows="3" placeholder="Describe physical sensations and textures..."></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-success">
+                                        <i data-lucide="plus"></i> Add Description
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="descriptors-list" data-category="tactile"></div>
+                        </div>
+
+                        <div class="tab-pane fade" id="content-energy" role="tabpanel">
+                            <div class="descriptor-form-card">
+                                <form class="descriptor-form" data-category="energy">
+                                    <div class="form-group">
+                                        <label class="form-label">Energy Impressions</label>
+                                        <textarea class="form-control" name="text" rows="3" placeholder="Describe energy and vibrational qualities..."></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-warning">
+                                        <i data-lucide="plus"></i> Add Description
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="descriptors-list" data-category="energy"></div>
+                        </div>
+
+                        <div class="tab-pane fade" id="content-smell" role="tabpanel">
+                            <div class="descriptor-form-card">
+                                <form class="descriptor-form" data-category="smell">
+                                    <div class="form-group">
+                                        <label class="form-label">Olfactory Perceptions</label>
+                                        <textarea class="form-control" name="text" rows="3" placeholder="Describe scents and aromatic qualities..."></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-info">
+                                        <i data-lucide="plus"></i> Add Description
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="descriptors-list" data-category="smell"></div>
+                        </div>
+
+                        <div class="tab-pane fade" id="content-sound" role="tabpanel">
+                            <div class="descriptor-form-card">
+                                <form class="descriptor-form" data-category="sound">
+                                    <div class="form-group">
+                                        <label class="form-label">Auditory Impressions</label>
+                                        <textarea class="form-control" name="text" rows="3" placeholder="Describe sounds and acoustic qualities..."></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-danger">
+                                        <i data-lucide="plus"></i> Add Description
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="descriptors-list" data-category="sound"></div>
+                        </div>
+
+                        <div class="tab-pane fade" id="content-visual" role="tabpanel">
+                            <div class="descriptor-form-card">
+                                <form class="descriptor-form" data-category="visual">
+                                    <div class="form-group">
+                                        <label class="form-label">Visual Elements</label>
+                                        <textarea class="form-control" name="text" rows="3" placeholder="Describe shapes, patterns, movement, lighting..."></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-dark">
+                                        <i data-lucide="plus"></i> Add Description
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="descriptors-list" data-category="visual"></div>
+                        </div>
+                    </div>
+
+                    <!-- Hidden descriptors data for JavaScript -->
+                    <div id="descriptorsData" style="display: none;">
+                        {% if descriptors %}
+                            {% for descriptor in descriptors %}
+                            <div class="descriptor-item" data-descriptor-id="{{ descriptor.id }}" data-category="{{ descriptor.category or 'general' }}">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        {% set category = descriptor.category or 'general' %}
+                                        <div class="mb-2">
+                                            <span class="badge bg-{{ 'primary' if category == 'colours' else 'success' if category == 'tactile' else 'warning' if category == 'energy' else 'info' if category == 'smell' else 'danger' if category == 'sound' else 'dark' if category == 'visual' else 'secondary' }}">
+                                                <i data-lucide="{{ 'droplet' if category == 'colours' else 'hand' if category == 'tactile' else 'zap' if category == 'energy' else 'wind' if category == 'smell' else 'volume-2' if category == 'sound' else 'eye' if category == 'visual' else 'tag' }}"></i>
+                                                {{ category.title() }}
+                                            </span>
+                                        </div>
+                                        <p class="mb-1 descriptor-text">{{ descriptor.text }}</p>
+                                        <small class="text-muted">by {{ descriptor.author or 'Anonymous' }}</small>
+                                    </div>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-success" onclick="voteDescriptor({{ descriptor.id }}, 'up')">
+                                            <i data-lucide="thumbs-up"></i> {{ descriptor.upvotes }}
+                                        </button>
+                                        <button class="btn btn-outline-danger" onclick="voteDescriptor({{ descriptor.id }}, 'down')">
+                                            <i data-lucide="thumbs-down"></i> {{ descriptor.downvotes }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Simplified Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Stats -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i data-lucide="activity" class="me-2"></i>Trial Activity</h6>
+                </div>
+                <div class="card-body">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-number">{{ predictions|length }}</div>
+                            <div class="stat-label">Predictions</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">{{ descriptors|length }}</div>
+                            <div class="stat-label">Descriptors</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">{{ outcomes|length }}</div>
+                            <div class="stat-label">Outcomes</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prediction Form (if trial is open/live) -->
+            {% if user and trial.status in ['open', 'live'] %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i data-lucide="send" class="me-2"></i>Submit Prediction</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="/trials/{{ trial.id }}/predict">
+                        <div class="mb-3">
+                            <label class="form-label">Choose Outcome</label>
+                            <select name="outcome_id" class="form-select" required>
+                                <option value="">Select an outcome...</option>
+                                {% for outcome in outcomes %}
+                                <option value="{{ outcome.id }}">{{ outcome.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i data-lucide="send"></i> Submit Prediction
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Judgments (if trial is settled) -->
+            {% if trial.status == 'settled' and user %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i data-lucide="check-circle" class="me-2"></i>Submit Judgment</h6>
+                </div>
+                <div class="card-body">
+                    <!-- Simplified judgment form -->
+                    <p class="text-muted mb-3">Rate how well each outcome matches the target:</p>
+                    <form id="judgmentForm">
+                        {% for outcome in outcomes %}
+                        <div class="mb-3">
+                            <label class="form-label">{{ outcome.label }}</label>
+                            <input type="range" class="form-range" name="score_{{ outcome.id }}" min="0" max="100" value="50">
+                            <div class="d-flex justify-content-between">
+                                <small>Poor Match</small>
+                                <small>Perfect Match</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-success w-100">
+                            <i data-lucide="check"></i> Submit Judgment
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Quick Actions for Users -->
+            {% if user %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i data-lucide="zap" class="me-2"></i>Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/trials/create" class="btn btn-primary">
+                            <i data-lucide="plus" class="me-2"></i>
+                            Create New ARV Trial
+                        </a>
+                        <a href="/trials" class="btn btn-outline-secondary">
+                            <i data-lucide="list" class="me-2"></i>
+                            View All Trials
+                        </a>
+                        {% if user.is_admin %}
+                        <a href="/targets" class="btn btn-outline-secondary">
+                            <i data-lucide="image" class="me-2"></i>
+                            Target Library
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+    <!-- Remote Viewing Descriptors Section -->
+    {% if user and trial.status in ['open', 'live'] %}
+    <div class="row">
+        <div class="col-12">
+            <div class="descriptor-section">
+                <div class="descriptor-header">
+                    <h5><i data-lucide="edit-3" class="me-2"></i>Remote Viewing Descriptors</h5>
+                </div>
+                <div class="descriptor-content">
+                    <!-- Protocol Instructions -->
+                    <div class="protocol-box mb-4">
+                        <div class="protocol-header">
+                            <i data-lucide="info" class="me-2"></i>
+                            <strong>Remote Viewing Protocol:</strong>
+                        </div>
+                        <p class="protocol-text">Focus on immediate perceptions, not analytical judgments. Describe what you sense across different sensory channels.</p>
+                    </div>
+                    
+                    <!-- Descriptor Categories -->
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="descriptor-category">
+                                <h6 class="category-title">Colours</h6>
+                                <textarea class="form-control descriptor-input" placeholder="Describe colours, intensities, patterns, or colour combinations..."></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="descriptor-category">
+                                <h6 class="category-title">Tactile</h6>
+                                <textarea class="form-control descriptor-input" placeholder="Describe physical sensations and textures..."></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="descriptor-category">
+                                <h6 class="category-title">Energy</h6>
+                                <textarea class="form-control descriptor-input" placeholder="Describe vibrational quality, intensity, energetic impressions..."></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="descriptor-category">
+                                <h6 class="category-title">Visual</h6>
+                                <textarea class="form-control descriptor-input" placeholder="Describe shapes, patterns, movement, lighting beyond colour..."></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="descriptor-category">
+                                <h6 class="category-title">Smell</h6>
+                                <textarea class="form-control descriptor-input" placeholder="Describe scents, odours, aromatic qualities..."></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="descriptor-category">
+                                <h6 class="category-title">Sound</h6>
+                                <textarea class="form-control descriptor-input" placeholder="Describe acoustic qualities, noises, auditory impressions..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <button class="btn btn-primary btn-lg">Submit Descriptors</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Enhanced trial page functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize all components
+    if (typeof populateAllDescriptors === 'function') {
+        populateAllDescriptors();
+        populateCategoryDescriptors();
+        loadSavedDrafts();
+    }
+    
+    // Feather icons
+    window.initializeLucideIcons();
+});
+
+// Target reveal functionality for trial submitter protection
+function revealTargetImage(element) {
+    const confirmed = confirm(
+        "⚠️ WARNING: Revealing Target Content\n\n" +
+        "Viewing target images during an active trial may compromise the integrity of the ARV trial by potentially influencing your remote viewing session and future sessions.\n\n" +
+        "Only reveal if absolutely necessary for trial management purposes.\n\n" +
+        "Do you want to continue and reveal the target image?"
+    );
+    
+    if (confirmed) {
+        const img = element.querySelector('.hidden-target-image');
+        const overlay = element.querySelector('.protection-overlay');
+        
+        if (img && overlay) {
+            overlay.style.display = 'none';
+            img.style.display = 'block';
+            
+            // Add revealed indicator
+            const revealedIndicator = document.createElement('div');
+            revealedIndicator.className = 'reveal-indicator mt-2';
+            revealedIndicator.innerHTML = `
+                <small class="text-warning">
+                    <i data-lucide="eye" style="width: 12px; height: 12px;"></i>
+                    Image revealed at ${new Date().toLocaleTimeString()}
+                </small>
+            `;
+            element.appendChild(revealedIndicator);
+            
+            // Re-initialize feather icons
+            if (typeof window.initializeLucideIcons === 'function') {
+                window.initializeLucideIcons();
+            }
+        }
+    }
+}
+
+// Tag reveal functionality for trial submitter protection
+function revealTags(element) {
+    const confirmed = confirm(
+        "⚠️ WARNING: Revealing Target Tags\n\n" +
+        "Viewing target tags during an active trial may compromise the integrity of the ARV trial by potentially influencing your remote viewing session and future sessions.\n\n" +
+        "Only reveal if absolutely necessary for trial management purposes.\n\n" +
+        "Do you want to continue and reveal the target tags?"
+    );
+    
+    if (confirmed) {
+        const actualTags = element.querySelector('.actual-tags');
+        const protectionBadge = element.querySelector('.protection-badge');
+        
+        if (actualTags && protectionBadge) {
+            protectionBadge.style.display = 'none';
+            actualTags.style.display = 'block';
+            
+            // Add revealed indicator
+            const revealedIndicator = document.createElement('div');
+            revealedIndicator.className = 'reveal-indicator mt-2';
+            revealedIndicator.innerHTML = `
+                <small class="text-warning">
+                    <i data-lucide="eye" style="width: 12px; height: 12px;"></i>
+                    Tags revealed at ${new Date().toLocaleTimeString()}
+                </small>
+            `;
+            element.appendChild(revealedIndicator);
+            
+            // Re-initialize feather icons
+            if (typeof window.initializeLucideIcons === 'function') {
+                window.initializeLucideIcons();
+            }
+        }
+    }
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Share Your Group Task - ARVLab{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Success Banner -->
+            <div class="alert alert-success d-flex align-items-center mb-4" role="alert">
+                <i data-lucide="check-circle" class="me-2"></i>
+                <div>
+                    <h5 class="alert-heading mb-1">Group Task Created Successfully!</h5>
+                    <small>Your task "{{ trial.title }}" is ready for participants.</small>
+                </div>
+            </div>
+
+            <!-- Sharing Encouragement Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="mb-3">
+                            <i data-lucide="target" style="width: 80px; height: 80px; color: #667eea;"></i>
+                        </div>
+                        <h3 class="card-title text-primary mb-2">Maximize Your Results</h3>
+                        <p class="text-muted">Share your group task to unlock better consensus and earn credits!</p>
+                    </div>
+
+                    <!-- Benefits Grid -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-success bg-opacity-10 rounded-3 p-2 me-3 flex-shrink-0">
+                                    <i data-lucide="users" class="text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">More Participants = Better Accuracy</h6>
+                                    <small class="text-muted">Larger groups provide more reliable consensus-driven predictions</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-warning bg-opacity-10 rounded-3 p-2 me-3 flex-shrink-0">
+                                    <i data-lucide="credit-card" class="text-warning"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Earn 1 Credit Per Participant</h6>
+                                    <small class="text-muted">Every person who joins rewards you with a free tasking credit</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-info bg-opacity-10 rounded-3 p-2 me-3 flex-shrink-0">
+                                    <i data-lucide="trending-up" class="text-info"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Enhanced Signal Quality</h6>
+                                    <small class="text-muted">Group dynamics improve remote viewing signal clarity</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-primary bg-opacity-10 rounded-3 p-2 me-3 flex-shrink-0">
+                                    <i data-lucide="shield-check" class="text-primary"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Scientific Validation</h6>
+                                    <small class="text-muted">Multiple participants provide statistical confidence</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task Details -->
+                    <div class="bg-light rounded-3 p-3 mb-4">
+                        <h6 class="text-dark mb-2">Task Details:</h6>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block">Task:</small>
+                                <strong>{{ trial.title }}</strong>
+                            </div>
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block">Domain:</small>
+                                <span class="badge bg-secondary">{{ trial.domain.title() }}</span>
+                            </div>
+                        </div>
+                        {% if trial.max_participants %}
+                        <div class="mt-2">
+                            <small class="text-muted d-block">Max Participants:</small>
+                            <strong>{{ trial.max_participants }} people</strong>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Share URL -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Share this link:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="shareUrl" 
+                                   value="{{ request.url.scheme }}://{{ request.url.netloc }}/trials/{{ trial.id }}"
+                                   readonly>
+                            <button class="btn btn-outline-primary" type="button" onclick="copyShareUrl()">
+                                <i data-lucide="copy" class="me-1"></i>Copy
+                            </button>
+                        </div>
+                        <small class="text-muted">Anyone with this link can view and join your group task</small>
+                    </div>
+
+                    <!-- Quick Share Buttons -->
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <button class="btn btn-primary btn-sm" onclick="shareViaEmail()">
+                            <i data-lucide="mail" class="me-1"></i>Share via Email
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="shareViaTwitter()">
+                            <i data-lucide="twitter" class="me-1"></i>Share on Twitter
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="shareViaReddit()">
+                            <i data-lucide="message-circle" class="me-1"></i>Share on Reddit
+                        </button>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex flex-wrap gap-2 justify-content-center">
+                        <a href="/trials/{{ trial.id }}" class="btn btn-success">
+                            <i data-lucide="eye" class="me-1"></i>View Task Details
+                        </a>
+                        <a href="/dashboard" class="btn btn-outline-primary">
+                            <i data-lucide="home" class="me-1"></i>Go to Dashboard
+                        </a>
+                        <a href="/wizard" class="btn btn-outline-secondary">
+                            <i data-lucide="plus" class="me-1"></i>Create Another Task
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tips Card -->
+            <div class="card border-0 bg-light">
+                <div class="card-body p-3">
+                    <h6 class="card-title mb-2"><i data-lucide="lightbulb" style="width: 16px; height: 16px;" class="me-1"></i>Sharing Tips</h6>
+                    <ul class="list-unstyled small mb-0">
+                        <li class="mb-1">• Share in ARV and remote viewing communities for experienced participants</li>
+                        <li class="mb-1">• Include the task domain ({{ trial.domain }}) when describing your task</li>
+                        <li class="mb-1">• Mention the result date to create urgency: {{ trial.result_time_utc.strftime('%B %d, %Y') }}</li>
+                        <li>• Emphasize collaborative research and earning potential for participants</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyShareUrl() {
+    const urlInput = document.getElementById('shareUrl');
+    urlInput.select();
+    urlInput.setSelectionRange(0, 99999);
+    
+    try {
+        document.execCommand('copy');
+        const btn = event.target.closest('button');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i data-lucide="check" class="me-1"></i>Copied!';
+        btn.classList.remove('btn-outline-primary');
+        btn.classList.add('btn-success');
+        
+        setTimeout(() => {
+            btn.innerHTML = originalHTML;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-outline-primary');
+            window.initializeLucideIcons();
+        }, 2000);
+        window.initializeLucideIcons();
+    } catch (err) {
+        alert('Failed to copy URL. Please copy manually.');
+    }
+}
+
+function shareViaEmail() {
+    const url = document.getElementById('shareUrl').value;
+    const subject = encodeURIComponent(`Join my ARV group task: ${document.querySelector('strong').textContent}`);
+    const body = encodeURIComponent(`I've created a group ARV task and would love for you to participate!\n\nTask: {{ trial.title }}\nDomain: {{ trial.domain.title() }}\nResult Date: {{ trial.result_time_utc.strftime('%B %d, %Y') }}\n\nJoin here: ${url}\n\nThis is collaborative remote viewing research - the more participants, the better our consensus accuracy!`);
+    
+    window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+}
+
+function shareViaTwitter() {
+    const url = document.getElementById('shareUrl').value;
+    const text = encodeURIComponent(`Join my ARV group task: "{{ trial.title }}" - collaborative remote viewing research! More participants = better accuracy. #RemoteViewing #ARV #PredictionResearch`);
+    
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(url)}`, '_blank');
+}
+
+function shareViaReddit() {
+    const url = document.getElementById('shareUrl').value;
+    const title = encodeURIComponent(`[Group Task] {{ trial.title }} - Collaborative ARV Research`);
+    
+    window.open(`https://reddit.com/submit?url=${encodeURIComponent(url)}&title=${title}`, '_blank');
+}
+
+// Initialize Lucide icons
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof window.initializeLucideIcons === 'function') {
+        window.initializeLucideIcons();
+    }
+});
+</script>
+{% endblock %}

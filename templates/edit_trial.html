@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Edit Task</h1>
+            <a href="/trials/{{ trial.id }}" class="btn btn-outline-secondary">
+                <i data-lucide="arrow-left"></i> Back to Task
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <form id="editTrialForm" method="post" action="/trials/{{ trial.id }}/edit">
+                    <!-- Basic Information -->
+                    <div class="mb-4">
+                        <h5>Basic Information</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="title" class="form-label">Task Title *</label>
+                                    <input type="text" class="form-control" id="title" name="title" 
+                                           value="{{ trial.title }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="domain" class="form-label">Domain *</label>
+                                    <select class="form-select" id="domain" name="domain" required onchange="handleDomainChange()">
+                                        <option value="stocks" {{ 'selected' if trial.domain == 'stocks' else '' }}>Stocks</option>
+                                        <option value="sports" {{ 'selected' if trial.domain == 'sports' else '' }}>Sports</option>
+                                        <option value="lottery" {{ 'selected' if trial.domain == 'lottery' else '' }}>Lottery</option>
+                                        <option value="general" {{ 'selected' if trial.domain == 'general' else '' }}>General</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="event_spec" class="form-label">Event Description *</label>
+                            <textarea class="form-control" id="event_spec" name="event_spec" rows="3" required>{{ trial.event_spec_json | from_json | attr('description') }}</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="result_time" class="form-label">Result Time *</label>
+                            <input type="datetime-local" class="form-control" id="result_time" name="result_time" 
+                                   value="{{ trial.result_time_utc.strftime('%Y-%m-%dT%H:%M') }}" required>
+                        </div>
+                    </div>
+
+                    <!-- Sports-specific outcomes (hidden by default) -->
+                    <div id="sportsOutcomes" class="mb-4" style="display: none;">
+                        <h5>Sports Outcomes</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="outcome_a_name" class="form-label">Team/Player 1 Name</label>
+                                    <input type="text" class="form-control" id="outcome_a_name" name="outcome_a_name" 
+                                           value="{{ outcomes[0].label if outcomes and outcomes|length > 0 else '' }}" placeholder="e.g., Team A">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="outcome_b_name" class="form-label">Team/Player 2 Name</label>
+                                    <input type="text" class="form-control" id="outcome_b_name" name="outcome_b_name" 
+                                           value="{{ outcomes[1].label if outcomes and outcomes|length > 1 else '' }}" placeholder="e.g., Team B">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="outcome_c_name" class="form-label">Draw/Tie Name</label>
+                                    <input type="text" class="form-control" id="outcome_c_name" name="outcome_c_name" 
+                                           value="{{ outcomes[2].label if outcomes and outcomes|length > 2 else '' }}" placeholder="Draw">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lottery-specific configuration (hidden by default) -->
+                    <div id="lotteryConfig" class="mb-4" style="display: none;">
+                        <h5>Lottery Configuration</h5>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="lottery_balls" class="form-label">Number of Balls (2-20)</label>
+                                <input type="number" class="form-control" id="lottery_balls" name="lottery_balls" 
+                                       value="{{ outcomes|length if trial.domain == 'lottery' else 5 }}" min="2" max="20" placeholder="5">
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i data-lucide="save"></i> Update Trial
+                        </button>
+                        <a href="/trials/{{ trial.id }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block title %}Edit Trial - Foresight ARV{% endblock %}
+
+{% block head %}
+<script>
+// Handle domain-specific UI changes
+function handleDomainChange() {
+    const domain = document.getElementById('domain').value;
+    const sportsOutcomes = document.getElementById('sportsOutcomes');
+    const lotteryConfig = document.getElementById('lotteryConfig');
+    
+    // Hide all domain-specific sections first
+    sportsOutcomes.style.display = 'none';
+    lotteryConfig.style.display = 'none';
+    
+    // Show relevant sections based on domain
+    if (domain === 'sports') {
+        sportsOutcomes.style.display = 'block';
+    } else if (domain === 'lottery') {
+        lotteryConfig.style.display = 'block';
+    }
+}
+
+
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    // Set initial domain state
+    handleDomainChange();
+});
+
+// Initialize Feather icons
+if (typeof window.initializeLucideIcons === 'function') {
+    window.initializeLucideIcons();
+}
+</script>
+{% endblock %}

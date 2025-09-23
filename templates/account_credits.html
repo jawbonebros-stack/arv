@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>My Credits - ARVLab</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/lucide@0.294.0/dist/umd/lucide.js"></script>
+</head>
+<body class="bg-light">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">ARVLab</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/dashboard">Dashboard</a>
+                <a class="nav-link" href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Account Summary -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <i data-lucide="credit-card" class="me-2" style="width: 24px; height: 24px;"></i>
+                            <h4 class="fw-bold mb-0">Credit Account</h4>
+                        </div>
+                        
+                        <div class="row text-center">
+                            <div class="col-lg-2 col-md-4 mb-3">
+                                <div class="h3 fw-bold text-primary">{{ user.tasking_credits }}</div>
+                                <div class="small text-muted">Credits Available</div>
+                            </div>
+                            <div class="col-lg-2 col-md-4 mb-3">
+                                <div class="h3 fw-bold text-muted">{{ user.individual_taskings_used }}</div>
+                                <div class="small text-muted">Individual Taskings</div>
+                            </div>
+                            <div class="col-lg-2 col-md-4 mb-3">
+                                <div class="h3 fw-bold text-warning">{{ user.accuracy_credits_earned }}</div>
+                                <div class="small text-muted">Accuracy Credits</div>
+                            </div>
+                            <div class="col-lg-2 col-md-4 mb-3">
+                                <div class="h3 fw-bold text-info">{{ user.referral_credits_earned }}</div>
+                                <div class="small text-muted">Referral Credits</div>
+                            </div>
+                            <div class="col-lg-2 col-md-4 mb-3">
+                                <div class="h3 fw-bold text-success">${{ "%.2f"|format(user.total_spent) }}</div>
+                                <div class="small text-muted">Total Spent</div>
+                            </div>
+                            <div class="col-lg-2 col-md-4 mb-3">
+                                <div class="h3 fw-bold text-info">{{ user.accuracy_percentage|round(1) }}%</div>
+                                <div class="small text-muted">Accuracy Rate</div>
+                            </div>
+                        </div>
+                        
+                        {% if user.tasking_credits <= 3 %}
+                        <div class="alert alert-warning mt-3">
+                            <i data-lucide="alert-triangle" class="me-2"></i>
+                            You're running low on credits. <a href="/purchase-credits" class="alert-link">Purchase more credits</a> to continue creating individual taskings.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Purchase History -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">Purchase History</h5>
+                            <a href="/purchase-credits" class="btn btn-primary btn-sm">
+                                <i data-lucide="plus" class="me-1" style="width: 16px; height: 16px;"></i>
+                                Buy Credits
+                            </a>
+                        </div>
+                        
+                        {% if purchases %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Package</th>
+                                        <th>Credits</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for purchase in purchases %}
+                                    <tr>
+                                        <td>
+                                            <div class="fw-medium">{{ purchase.created_at.strftime('%b %d, %Y') }}</div>
+                                            <small class="text-muted">{{ purchase.created_at.strftime('%I:%M %p') }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="fw-medium">{{ packages[purchase.package_type].name }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark">{{ purchase.credits_purchased }} credits</span>
+                                        </td>
+                                        <td>
+                                            <span class="fw-medium">${{ "%.2f"|format(purchase.cost) }}</span>
+                                        </td>
+                                        <td>
+                                            {% if purchase.payment_status == "completed" %}
+                                                <span class="badge bg-success">Completed</span>
+                                            {% elif purchase.payment_status == "pending" %}
+                                                <span class="badge bg-warning">Pending</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Failed</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i data-lucide="shopping-cart" style="width: 48px; height: 48px; color: #6c757d;" class="mb-3"></i>
+                            <h6 class="text-muted">No purchases yet</h6>
+                            <p class="text-muted small">Purchase your first credit pack to start creating individual taskings.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <!-- Quick Actions -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold mb-3">Quick Actions</h6>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="/purchase-credits" class="btn btn-primary">
+                                <i data-lucide="credit-card" class="me-2" style="width: 16px; height: 16px;"></i>
+                                Purchase Credits
+                            </a>
+                            <a href="/dashboard" class="btn btn-outline-secondary">
+                                <i data-lucide="home" class="me-2" style="width: 16px; height: 16px;"></i>
+                                Back to Dashboard
+                            </a>
+                            <a href="/create-trial" class="btn btn-outline-primary">
+                                <i data-lucide="plus-circle" class="me-2" style="width: 16px; height: 16px;"></i>
+                                Create New Tasking
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pricing Info -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold mb-3">Pricing Reminder</h6>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <i data-lucide="user" class="me-2" style="width: 16px; height: 16px;"></i>
+                                    <span class="small">Individual Tasking</span>
+                                </div>
+                                <span class="fw-bold">1 credit</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <i data-lucide="users" class="me-2" style="width: 16px; height: 16px;"></i>
+                                    <span class="small">Group Tasking</span>
+                                </div>
+                                <span class="fw-bold text-success">FREE</span>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-3">
+                        
+                        <div class="small text-muted mb-3">
+                            <strong>Best Packages:</strong><br>
+                            • 10 credits for $9 ($0.90 each)<br>
+                            • 25 credits for $15 ($0.60 each)<br>
+                            • 50 credits for $20 ($0.40 each)
+                        </div>
+                        
+                        <hr class="my-3">
+                        
+                        <div class="small text-muted">
+                            <strong>Earn Free Credits:</strong><br>
+                            • <span class="text-warning">1 credit</span> per accurate prediction<br>
+                            • <span class="text-info">5 credits</span> per referral signup<br>
+                            • <span class="text-success">1 credit</span> when someone joins your group task
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.initializeLucideIcons();
+    </script>
+</body>
+</html>

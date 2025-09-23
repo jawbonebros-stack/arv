@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}Referrals - ARVLab{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i data-lucide="users" style="width: 28px; height: 28px;"></i>
+                    Your Referrals
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Referral Stats Cards -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i data-lucide="gift" style="width: 48px; height: 48px; color: #28a745;"></i>
+                    </div>
+                    <h3 class="fw-bold text-success">{{ user.total_referrals }}</h3>
+                    <p class="text-muted mb-0">People Referred</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i data-lucide="credit-card" style="width: 48px; height: 48px; color: #007bff;"></i>
+                    </div>
+                    <h3 class="fw-bold text-primary">{{ user.referral_credits_earned }}</h3>
+                    <p class="text-muted mb-0">Credits Earned</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i data-lucide="trending-up" style="width: 48px; height: 48px; color: #17a2b8;"></i>
+                    </div>
+                    <h3 class="fw-bold text-info">{{ user.referral_credits_earned * 2 }}</h3>
+                    <p class="text-muted mb-0">Total Value ($)</p>
+                    <small class="text-muted">5 credits = $10 value</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Referral Code Section -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i data-lucide="share-2" style="width: 20px; height: 20px;"></i>
+                        Your Referral Code
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong class="h4">{{ user.referral_code }}</strong>
+                                <br>
+                                <small class="text-muted">Share this code for 5 credits each!</small>
+                            </div>
+                            <button class="btn btn-success btn-sm" onclick="copyReferralCode()">
+                                <i data-lucide="copy" style="width: 16px; height: 16px;"></i>
+                                Copy
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Referral Link:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="referralUrl" value="{{ referral_url }}" readonly>
+                            <button class="btn btn-outline-primary" onclick="copyReferralUrl()">
+                                <i data-lucide="copy" style="width: 16px; height: 16px;"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" onclick="shareOnTwitter()">
+                            <i data-lucide="twitter" style="width: 16px; height: 16px;"></i>
+                            Share on Twitter
+                        </button>
+                        <button class="btn btn-success" onclick="shareOnWhatsApp()">
+                            <i data-lucide="message-circle" style="width: 16px; height: 16px;"></i>
+                            Share on WhatsApp
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How It Works -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i data-lucide="help-circle" style="width: 20px; height: 20px;"></i>
+                        How Referrals Work
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="badge bg-primary rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">1</div>
+                        <div>
+                            <strong>Share Your Code</strong>
+                            <p class="text-muted small mb-0">Send your referral code or link to friends</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="badge bg-primary rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">2</div>
+                        <div>
+                            <strong>They Join & Get Bonus</strong>
+                            <p class="text-muted small mb-0">New users get 8 credits instead of 3</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start">
+                        <div class="badge bg-primary rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">3</div>
+                        <div>
+                            <strong>You Earn Credits</strong>
+                            <p class="text-muted small mb-0">Get 5 credits for each successful referral</p>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-3">
+                        <small>
+                            <i data-lucide="info" style="width: 14px; height: 14px;"></i>
+                            Each credit is worth ~$2. Invite 2 friends = 10 free credits!
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Referrals -->
+    {% if referrals %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i data-lucide="users" style="width: 20px; height: 20px;"></i>
+                        Recent Referrals ({{ referrals|length }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Joined</th>
+                                    <th>Status</th>
+                                    <th>Credits Earned</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for referral in referrals %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle me-2 bg-secondary text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 50%;">
+                                                {{ referral.name[0].upper() }}
+                                            </div>
+                                            <span>{{ referral.name }}</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ referral.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <span class="badge bg-success">Active</span>
+                                    </td>
+                                    <td>
+                                        <span class="text-success fw-bold">+5 credits</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i data-lucide="users" style="width: 64px; height: 64px; color: #6c757d;" class="mb-3"></i>
+                    <h5 class="text-muted">No Referrals Yet</h5>
+                    <p class="text-muted">Start sharing your referral code to earn credits!</p>
+                    <button class="btn btn-primary" onclick="copyReferralCode()">
+                        <i data-lucide="copy" style="width: 16px; height: 16px;"></i>
+                        Copy Your Code
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function copyReferralCode() {
+    const code = "{{ user.referral_code }}";
+    navigator.clipboard.writeText(code).then(() => {
+        showToast('success', 'Referral code copied!');
+    });
+}
+
+function copyReferralUrl() {
+    const url = document.getElementById('referralUrl').value;
+    navigator.clipboard.writeText(url).then(() => {
+        showToast('success', 'Referral link copied!');
+    });
+}
+
+function shareOnTwitter() {
+    const text = `Join me on ARVLab - the most advanced remote viewing research platform! Use my code {{ user.referral_code }} to get 5 bonus credits when you sign up.`;
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent('{{ referral_url }}')}`;
+    window.open(url, '_blank');
+}
+
+function shareOnWhatsApp() {
+    const text = `Hey! I'm using ARVLab for remote viewing research. Join me with code {{ user.referral_code }} and get 5 bonus credits! {{ referral_url }}`;
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+}
+
+function showToast(type, message) {
+    // Simple toast notification
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 1000; min-width: 250px;';
+    toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle' : 'x-circle'}" style="width: 16px; height: 16px;"></i> ${message}`;
+    document.body.appendChild(toast);
+    window.initializeLucideIcons();
+    setTimeout(() => toast.remove(), 3000);
+}
+</script>
+{% endblock %}

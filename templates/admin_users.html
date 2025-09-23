@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - ARVLab</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/lucide@0.294.0/dist/umd/lucide.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i data-lucide="eye" class="me-2"></i>ARVLab
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/trials">Tasks</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/admin/users">User Management</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    {% if user %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            {{ user.name }}
+                            <span class="badge bg-secondary text-light ms-1">{{ user.role.title() }}</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/profile">Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/logout">Logout</a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/login">Login</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col">
+                <h1><i data-lucide="users" class="me-2"></i>User Management</h1>
+                <p class="text-muted">Manage user accounts, roles, and permissions</p>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                    <i data-lucide="user-plus" class="me-2"></i>Create User
+                </button>
+            </div>
+        </div>
+
+        <!-- User Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <i data-lucide="users" class="stats-icon text-secondary"></i>
+                        <h3 class="mt-3">{{ user_stats.total }}</h3>
+                        <p class="text-muted mb-0">Total Users</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <i data-lucide="shield" class="stats-icon text-secondary"></i>
+                        <h3 class="mt-3">{{ user_stats.admins }}</h3>
+                        <p class="text-muted mb-0">Administrators</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <i data-lucide="activity" class="stats-icon text-secondary"></i>
+                        <h3 class="mt-3">{{ user_stats.active_recently }}</h3>
+                        <p class="text-muted mb-0">Active This Week</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <i data-lucide="target" class="stats-icon text-secondary"></i>
+                        <h3 class="mt-3">{{ user_stats.trial_creators }}</h3>
+                        <p class="text-muted mb-0">Trial Creators</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Filters -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Filter by Role</label>
+                        <select id="roleFilter" class="form-select" onchange="filterUsers()">
+                            <option value="">All Roles</option>
+                            <option value="admin">Administrators</option>
+                            <option value="judge">Judges</option>
+                            <option value="analyst">Analysts</option>
+                            <option value="viewer">Viewers</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Search Users</label>
+                        <input type="text" id="searchUsers" class="form-control" placeholder="Search by name or email..." onkeyup="filterUsers()">
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                            <i data-lucide="x" class="me-2"></i>Clear Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">All Users</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="usersTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Skill Score</th>
+                                <th>Created</th>
+                                <th>Last Active</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user_row in users %}
+                            <tr data-role="{{ user_row.role }}" data-name="{{ user_row.name.lower() }}" data-email="{{ user_row.email.lower() }}">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="user-avatar me-3">
+                                            <i data-lucide="user"></i>
+                                        </div>
+                                        <div>
+                                            <strong>{{ user_row.name }}</strong>
+                                            {% if user_row.id == user.id %}
+                                            <span class="badge bg-secondary ms-2">You</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ user_row.email }}</td>
+                                <td>
+                                    <span class="badge role-badge role-{{ user_row.role }}">
+                                        {{ user_row.role.title() }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="skill-score">
+                                        <span class="score-value">{{ "%.1f"|format(user_row.skill_score) }}</span>
+                                        <div class="score-bar">
+                                            <div class="score-fill" style="width: {{ (user_row.skill_score / 10 * 100)|round }}%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ user_row.created_at.strftime('%Y-%m-%d') }}</small>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ user_row.created_at.strftime('%Y-%m-%d') }}</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="editUser({{ user_row.id }})">
+                                            <i data-lucide="edit-2"></i>
+                                        </button>
+                                        {% if user_row.id != user.id %}
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteUser({{ user_row.id }}, '{{ user_row.name }}')">
+                                            <i data-lucide="trash-2"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create User Modal -->
+    <div class="modal fade" id="createUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" action="/admin/users/create">
+                    <div class="modal-body">
+                        <div class="alert alert-info" role="alert">
+                            <i data-lucide="info"></i>
+                            <strong>Auto-Generated Usernames:</strong> Leave username blank to auto-generate a Reddit-style name like "ProViewer_2023" or "QuantumSeer_42".
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Custom Username (Optional)</label>
+                            <input type="text" name="custom_name" class="form-control" placeholder="Leave blank for auto-generation">
+                            <div class="form-text">If empty, we'll create a unique Reddit-style username automatically</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" name="password" class="form-control" required minlength="6">
+                            <div class="form-text">Minimum 6 characters</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Role</label>
+                            <select name="role" class="form-select" required>
+                                <option value="viewer">Viewer - Can participate in trials</option>
+                                <option value="analyst">Analyst - Can analyze and view results</option>
+                                <option value="judge">Judge - Can score and judge trials</option>
+                                <option value="admin">Administrator - Full access</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Initial Skill Score</label>
+                            <input type="number" name="skill_score" class="form-control" value="0" min="0" max="10" step="0.1">
+                            <div class="form-text">Score from 0 to 10 based on ARV abilities</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create User</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="editUserForm" method="POST">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" id="edit-name" name="name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" id="edit-email" name="email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Role</label>
+                            <select id="edit-role" name="role" class="form-select" required>
+                                <option value="viewer">Viewer - Can participate in trials</option>
+                                <option value="analyst">Analyst - Can analyze and view results</option>
+                                <option value="judge">Judge - Can score and judge trials</option>
+                                <option value="admin">Administrator - Full access</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Skill Score</label>
+                            <input type="number" id="edit-skill-score" name="skill_score" class="form-control" min="0" max="10" step="0.1">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Password (leave blank to keep current)</label>
+                            <input type="password" name="new_password" class="form-control" minlength="6">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.initializeLucideIcons();
+
+        // Filter users based on role and search
+        function filterUsers() {
+            const roleFilter = document.getElementById('roleFilter').value.toLowerCase();
+            const searchTerm = document.getElementById('searchUsers').value.toLowerCase();
+            const rows = document.querySelectorAll('#usersTable tbody tr');
+
+            rows.forEach(row => {
+                const role = row.dataset.role;
+                const name = row.dataset.name;
+                const email = row.dataset.email;
+
+                const roleMatch = !roleFilter || role === roleFilter;
+                const searchMatch = !searchTerm || name.includes(searchTerm) || email.includes(searchTerm);
+
+                if (roleMatch && searchMatch) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Clear all filters
+        function clearFilters() {
+            document.getElementById('roleFilter').value = '';
+            document.getElementById('searchUsers').value = '';
+            filterUsers();
+        }
+
+        // Edit user function
+        function editUser(userId) {
+            fetch(`/admin/users/${userId}`)
+                .then(response => response.json())
+                .then(user => {
+                    document.getElementById('edit-name').value = user.name;
+                    document.getElementById('edit-email').value = user.email;
+                    document.getElementById('edit-role').value = user.role;
+                    document.getElementById('edit-skill-score').value = user.skill_score;
+                    document.getElementById('editUserForm').action = `/admin/users/${userId}/edit`;
+                    
+                    new bootstrap.Modal(document.getElementById('editUserModal')).show();
+                })
+                .catch(error => {
+                    alert('Error loading user data: ' + error.message);
+                });
+        }
+
+        // Delete user function
+        function deleteUser(userId, userName) {
+            if (confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone and will remove all their trial data.`)) {
+                fetch(`/admin/users/${userId}/delete`, {
+                    method: 'POST'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        throw new Error('Failed to delete user');
+                    }
+                })
+                .catch(error => {
+                    alert('Error deleting user: ' + error.message);
+                });
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,985 @@
+{% extends "base.html" %}
+
+{% block title %}Targets - ARVLab{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i data-lucide="image"></i> Target Management</h1>
+    <div class="btn-group">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadTargetModal">
+            <i data-lucide="plus"></i> Add Target
+        </button>
+        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#bulkUploadModal">
+            <i data-lucide="upload"></i> Bulk Upload
+        </button>
+    </div>
+</div>
+
+<!-- Bulk Actions Toolbar -->
+{% if user.role == 'admin' %}
+<div class="bulk-actions-toolbar card mb-4" id="bulkActionsToolbar" style="display: none;">
+    <div class="card-body py-2">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="bulk-selection-info">
+                <span id="selectedCount">0</span> target(s) selected
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-outline-secondary btn-sm" onclick="selectAllTargets()">
+                    <i data-lucide="check-square"></i> Select All
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="deselectAllTargets()">
+                    <i data-lucide="square"></i> Deselect All
+                </button>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                        <i data-lucide="settings"></i> Bulk Actions
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="bulkEditTags()">
+                                <i data-lucide="edit"></i> Edit Tags
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="bulkGenerateEmbeddings()">
+                                <i data-lucide="zap"></i> Generate Embeddings
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="#" onclick="bulkDeleteTargets()">
+                                <i data-lucide="trash-2"></i> Delete Selected
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<p class="lead">Manage image targets for associative remote viewing tasks.</p>
+
+{% if targets %}
+<div class="row">
+    {% for target in targets %}
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 target-card" data-target-id="{{ target.id }}">
+            <div class="position-relative">
+                <img src="{% if target.uri.startswith('http') %}{{ target.uri }}{% elif target.uri.startswith('static/') %}/{{ target.uri }}{% else %}/static/{{ target.uri }}{% endif %}" class="card-img-top target-image" alt="Target {{ target.id }}" 
+                     style="height: 250px; object-fit: cover; border-radius: 8px 8px 0 0;"
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUwIiBoZWlnaHQ9IjI1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGVlMmU2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNHB4IiBmaWxsPSIjNmM3NTdkIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SW1hZ2UgTm90IEZvdW5kPC90ZXh0Pjwvc3ZnPg=='; console.log('Image failed to load:', this.src);">
+                
+                {% if user.role == 'admin' %}
+                <div class="position-absolute top-0 start-0 m-2">
+                    <div class="form-check">
+                        <input class="form-check-input target-checkbox" type="checkbox" 
+                               value="{{ target.id }}" id="target_{{ target.id }}"
+                               onchange="updateBulkActions()">
+                        <label class="form-check-label visually-hidden" for="target_{{ target.id }}">
+                            Select target {{ target.id }}
+                        </label>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="position-absolute top-0 end-0 m-2">
+                    <span class="badge bg-primary target-id-badge">{{ target.id }}</span>
+                </div>
+            </div>
+            <div class="card-body d-flex flex-column">
+                <h6 class="card-title fw-bold text-primary">Target #{{ target.id }}</h6>
+
+                <p class="card-text">
+                    <small class="text-muted">
+                        <strong>Type:</strong> {{ target.modality.title() }}
+                    </small>
+                </p>
+                
+                {% if target.image_embed_json %}
+                <div class="alert alert-success alert-sm p-2 mb-2">
+                    <i data-lucide="zap" class="small-icon"></i>
+                    <small>AI embedding ready</small>
+                </div>
+                {% endif %}
+                
+                <div class="mt-auto">
+                    <small class="text-muted d-block">
+                        <i data-lucide="clock" class="small-icon"></i>
+                        {{ target.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    </small>
+                </div>
+            </div>
+            {% if user.role == 'admin' %}
+            <div class="card-footer bg-light">
+                <div class="d-flex justify-content-between">
+                    <button class="btn btn-sm btn-outline-primary" onclick="previewTarget({{ target.id }}, '{{ target.uri }}')">
+                        <i data-lucide="eye"></i> Preview
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteTarget({{ target.id }})">
+                        <i data-lucide="trash-2"></i> Delete
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info text-center">
+    <i data-lucide="info"></i>
+    <h5>No Targets Available</h5>
+    <p>No image targets have been uploaded yet. Add some targets to get started.</p>
+</div>
+{% endif %}
+
+<!-- Upload Target Modal -->
+<div class="modal fade" id="uploadTargetModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Target</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="/targets/upload" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <!-- Upload Method Selection -->
+                    <div class="mb-3">
+                        <label class="form-label">Upload Method</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="uploadMethod" id="urlMethod" value="url" checked>
+                            <label class="btn btn-outline-primary" for="urlMethod">
+                                <i data-lucide="link"></i> Image URL
+                            </label>
+                            <input type="radio" class="btn-check" name="uploadMethod" id="fileMethod" value="file">
+                            <label class="btn btn-outline-primary" for="fileMethod">
+                                <i data-lucide="upload"></i> Upload File
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- URL Upload Section -->
+                    <div class="mb-3" id="urlSection">
+                        <label for="targetUri" class="form-label">Image URL</label>
+                        <input type="url" class="form-control" id="targetUri" name="uri" 
+                               placeholder="https://example.com/image.jpg">
+                        <div class="form-text">
+                            Enter a direct URL to an image file<br>
+                            <strong>Recommended:</strong> Square images (400×400px to 800×800px) work best for target display
+                        </div>
+                        
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addSampleTargets()">
+                                <i data-lucide="image"></i> Add Photo-Realistic Targets
+                            </button>
+                            <small class="d-block text-muted mt-1">Adds 21 distinctive objects: glove, marble, paintbrush, cactus, book, shoe, apple, key, cat, candle, pizza, sunglasses, honey jar, red heels, mountain, butterfly, sunflower, cereal bowl, coffee cup, pineapple, banana</small>
+                        </div>
+                    </div>
+
+                    <!-- File Upload Section -->
+                    <div class="mb-3" id="fileSection" style="display: none;">
+                        <label for="targetFile" class="form-label">Upload Image File</label>
+                        <input type="file" class="form-control" id="targetFile" name="file" 
+                               accept="image/*" onchange="previewUploadedFile(this)">
+                        <div class="form-text">
+                            <strong>Supported formats:</strong> JPG, PNG, GIF, SVG, WebP (max 10MB)<br>
+                            <strong>Optimal size:</strong> 400×400px to 800×800px for best quality across all devices
+                        </div>
+                        
+                        <!-- File Preview -->
+                        <div id="filePreview" class="mt-2" style="display: none;">
+                            <img id="previewImg" src="" alt="Preview" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">
+                            <div class="mt-1">
+                                <small class="text-muted" id="fileInfo"></small>
+                            </div>
+                        </div>
+                    </div>
+                    
+
+                    
+                    <div class="alert alert-info">
+                        <i data-lucide="info"></i>
+                        <small>
+                            <strong>Image Guidelines:</strong><br>
+                            • Square aspect ratio (1:1) provides consistent display across devices<br>
+                            • 400×400px minimum, 800×800px recommended for optimal quality<br>
+                            • Clear, distinctive subjects work best for remote viewing tasks<br>
+                            • If CLIP embeddings are enabled, semantic embeddings will be generated automatically
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Add Target</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Target Preview Modal -->
+<div class="modal fade" id="targetPreviewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewModalTitle">Target Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="previewImage" src="" class="img-fluid rounded" style="max-height: 500px;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Upload Modal -->
+<div class="modal fade" id="bulkUploadModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Bulk Upload Targets</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="bulkUploadForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="bulkFiles" class="form-label">Select Multiple Images</label>
+                        <input type="file" class="form-control" id="bulkFiles" name="files" 
+                               accept="image/*" multiple onchange="previewBulkFiles(this)">
+                        <div class="form-text">
+                            <strong>Supported formats:</strong> JPG, PNG, GIF, SVG, WebP (max 10MB each)<br>
+                            <strong>Optimal size:</strong> 400×400px to 800×800px for best quality across all devices<br>
+                            <strong>Tip:</strong> Hold Ctrl/Cmd to select multiple files
+                        </div>
+                    </div>
+                    
+                    <!-- File Preview Grid -->
+                    <div id="bulkPreview" class="row g-2" style="display: none;">
+                        <div class="col-12">
+                            <h6>Selected Files:</h6>
+                        </div>
+                    </div>
+                    
+                    <!-- Upload Progress -->
+                    <div id="uploadProgress" style="display: none;">
+                        <div class="mb-2">
+                            <strong>Upload Progress:</strong>
+                            <span id="progressText">0 / 0</span>
+                        </div>
+                        <div class="progress mb-3">
+                            <div class="progress-bar" role="progressbar" id="progressBar" style="width: 0%"></div>
+                        </div>
+                        <div id="uploadResults"></div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i data-lucide="info"></i>
+                        <small>
+                            <strong>Bulk Upload Guidelines:</strong><br>
+                            • Select multiple image files using Ctrl/Cmd + click<br>
+                            • Each file will be uploaded as a separate target<br>
+                            • CLIP embeddings will be generated automatically if enabled<br>
+                            • Large batches may take several minutes to process
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="startBulkUpload">
+                        <i data-lucide="upload"></i> Upload All
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Edit Tags Modal -->
+{% if user.role == 'admin' %}
+<div class="modal fade" id="bulkEditTagsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Bulk Edit Tags</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i data-lucide="info"></i>
+                    Editing tags for <strong><span id="bulkSelectedCount">0</span></strong> selected target(s)
+                </div>
+                
+                <input type="hidden" id="bulkTargetIds">
+                
+                <div class="mb-3">
+                    <label class="form-label">Tag Action</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="bulkTagAction" id="replaceAction" value="replace" checked>
+                        <label class="form-check-label" for="replaceAction">
+                            Replace all tags
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="bulkTagAction" id="appendAction" value="append">
+                        <label class="form-check-label" for="appendAction">
+                            Add to existing tags
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="bulkTagAction" id="removeAction" value="remove">
+                        <label class="form-check-label" for="removeAction">
+                            Remove specified tags
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="bulkTags" class="form-label">Tags (comma-separated)</label>
+                    <textarea class="form-control" id="bulkTags" rows="3" 
+                              placeholder="water, blue, nature, flowing"></textarea>
+                    <div class="form-text">
+                        Enter tags separated by commas. Action will be applied to all selected targets.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveBulkTags()">
+                    <i data-lucide="save"></i>
+                    Update Tags
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Bulk upload functions
+function previewBulkFiles(input) {
+    const previewContainer = document.getElementById('bulkPreview');
+    const files = input.files;
+    
+    if (files.length === 0) {
+        previewContainer.style.display = 'none';
+        return;
+    }
+    
+    previewContainer.style.display = 'block';
+    // Clear existing previews except header
+    const children = Array.from(previewContainer.children);
+    children.slice(1).forEach(child => child.remove());
+    
+    for (let i = 0; i < Math.min(files.length, 12); i++) { // Limit preview to 12 files
+        const file = files[i];
+        const col = document.createElement('div');
+        col.className = 'col-md-2 col-4';
+        
+        const card = document.createElement('div');
+        card.className = 'card h-100';
+        card.innerHTML = `
+            <div class="card-body p-2 text-center">
+                <i data-lucide="image" class="mb-1"></i>
+                <small class="d-block text-truncate" title="${file.name}">${file.name}</small>
+                <small class="text-muted">${(file.size / 1024).toFixed(1)} KB</small>
+            </div>
+        `;
+        
+        col.appendChild(card);
+        previewContainer.appendChild(col);
+    }
+    
+    if (files.length > 12) {
+        const col = document.createElement('div');
+        col.className = 'col-md-2 col-4';
+        col.innerHTML = `
+            <div class="card h-100">
+                <div class="card-body p-2 text-center">
+                    <i data-lucide="more-horizontal" class="mb-1"></i>
+                    <small class="d-block">+${files.length - 12} more</small>
+                </div>
+            </div>
+        `;
+        previewContainer.appendChild(col);
+    }
+    
+    // Re-initialize feather icons
+    window.initializeLucideIcons();
+}
+
+async function startBulkUpload() {
+    const fileInput = document.getElementById('bulkFiles');
+    const files = fileInput.files;
+    
+    if (files.length === 0) {
+        alert('Please select at least one file');
+        return;
+    }
+    
+    const uploadButton = document.getElementById('startBulkUpload');
+    const progressContainer = document.getElementById('uploadProgress');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const resultsContainer = document.getElementById('uploadResults');
+    
+    // Show progress and disable button
+    progressContainer.style.display = 'block';
+    uploadButton.disabled = true;
+    uploadButton.innerHTML = '<i data-lucide="loader"></i> Uploading...';
+    
+    let successful = 0;
+    let failed = 0;
+    const results = [];
+    
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        progressText.textContent = `${i + 1} / ${files.length}`;
+        progressBar.style.width = `${((i + 1) / files.length) * 100}%`;
+        
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const response = await fetch('/targets/upload', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Bulk-Upload': 'true'
+                }
+            });
+            
+            if (response.ok) {
+                successful++;
+                results.push(`✓ ${file.name}`);
+            } else {
+                failed++;
+                results.push(`✗ ${file.name} (${response.status})`);
+            }
+        } catch (error) {
+            failed++;
+            results.push(`✗ ${file.name} (${error.message})`);
+        }
+    }
+    
+    // Show results
+    resultsContainer.innerHTML = `
+        <div class="alert alert-${failed === 0 ? 'success' : 'warning'}">
+            <strong>Upload Complete:</strong><br>
+            ${successful} successful, ${failed} failed<br>
+            <small class="mt-2 d-block">${results.join('<br>')}</small>
+        </div>
+    `;
+    
+    // Reset button
+    uploadButton.disabled = false;
+    uploadButton.innerHTML = '<i data-lucide="upload"></i> Upload All';
+    if (typeof window.initializeLucideIcons === 'function') {
+        window.initializeLucideIcons();
+    }
+    
+    // Reload page after short delay to show new targets
+    setTimeout(() => {
+        window.location.reload();
+    }, 2000);
+}
+
+// Add event listener when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    const bulkUploadButton = document.getElementById('startBulkUpload');
+    if (bulkUploadButton) {
+        bulkUploadButton.addEventListener('click', startBulkUpload);
+    }
+});
+
+// ==================== BULK MANAGEMENT FUNCTIONS ====================
+
+function updateBulkActions() {
+    const checkboxes = document.querySelectorAll('.target-checkbox:checked');
+    const selectedCount = checkboxes.length;
+    const bulkToolbar = document.getElementById('bulkActionsToolbar');
+    const selectedCountEl = document.getElementById('selectedCount');
+    
+    if (selectedCount > 0) {
+        bulkToolbar.style.display = 'block';
+        selectedCountEl.textContent = selectedCount;
+    } else {
+        bulkToolbar.style.display = 'none';
+    }
+}
+
+function selectAllTargets() {
+    const checkboxes = document.querySelectorAll('.target-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = true;
+    });
+    updateBulkActions();
+}
+
+function deselectAllTargets() {
+    const checkboxes = document.querySelectorAll('.target-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    updateBulkActions();
+}
+
+function getSelectedTargetIds() {
+    const checkboxes = document.querySelectorAll('.target-checkbox:checked');
+    return Array.from(checkboxes).map(cb => parseInt(cb.value));
+}
+
+async function bulkDeleteTargets() {
+    const selectedIds = getSelectedTargetIds();
+    
+    if (selectedIds.length === 0) {
+        alert('Please select targets to delete');
+        return;
+    }
+    
+    if (!confirm(`Are you sure you want to delete ${selectedIds.length} target(s)? This action cannot be undone.`)) {
+        return;
+    }
+    
+    try {
+        showBulkProgress('Deleting targets...', selectedIds.length);
+        
+        const response = await fetch('/admin/targets/bulk-delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ target_ids: selectedIds })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast(`Successfully deleted ${result.deleted_count} target(s)`, 'success');
+            
+            // Remove deleted targets from the page
+            selectedIds.forEach(id => {
+                const targetCard = document.querySelector(`[data-target-id="${id}"]`);
+                if (targetCard) {
+                    targetCard.closest('.col-lg-4').remove();
+                }
+            });
+            
+            deselectAllTargets();
+        } else {
+            showToast('Error deleting targets: ' + result.error, 'error');
+            if (result.failed_targets && result.failed_targets.length > 0) {
+                console.error('Failed to delete targets:', result.failed_targets);
+            }
+        }
+    } catch (error) {
+        showToast('Error deleting targets: ' + error.message, 'error');
+    } finally {
+        hideBulkProgress();
+    }
+}
+
+function bulkEditTags() {
+    const selectedIds = getSelectedTargetIds();
+    
+    if (selectedIds.length === 0) {
+        alert('Please select targets to edit tags');
+        return;
+    }
+    
+    // Show bulk tag edit modal
+    document.getElementById('bulkSelectedCount').textContent = selectedIds.length;
+    document.getElementById('bulkTargetIds').value = JSON.stringify(selectedIds);
+    
+    const modal = new bootstrap.Modal(document.getElementById('bulkEditTagsModal'));
+    modal.show();
+}
+
+async function saveBulkTags() {
+    const targetIds = JSON.parse(document.getElementById('bulkTargetIds').value);
+    const tags = document.getElementById('bulkTags').value;
+    const action = document.querySelector('input[name="bulkTagAction"]:checked').value;
+    
+    try {
+        showBulkProgress('Updating tags...', targetIds.length);
+        
+        const response = await fetch('/admin/targets/bulk-edit-tags', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                target_ids: targetIds,
+                tags: tags,
+                action: action
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast(`Successfully updated tags for ${result.updated_count} target(s)`, 'success');
+            bootstrap.Modal.getInstance(document.getElementById('bulkEditTagsModal')).hide();
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showToast('Error updating tags: ' + result.error, 'error');
+        }
+    } catch (error) {
+        showToast('Error updating tags: ' + error.message, 'error');
+    } finally {
+        hideBulkProgress();
+    }
+}
+
+async function bulkGenerateEmbeddings() {
+    const selectedIds = getSelectedTargetIds();
+    
+    if (selectedIds.length === 0) {
+        alert('Please select targets to generate embeddings');
+        return;
+    }
+    
+    if (!confirm(`Generate AI embeddings for ${selectedIds.length} target(s)? This may take a few minutes.`)) {
+        return;
+    }
+    
+    try {
+        showBulkProgress('Generating embeddings...', selectedIds.length);
+        
+        const response = await fetch('/admin/targets/bulk-generate-embeddings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ target_ids: selectedIds })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast(`Successfully generated embeddings for ${result.processed_count} target(s)`, 'success');
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            showToast('Error generating embeddings: ' + result.error, 'error');
+        }
+    } catch (error) {
+        showToast('Error generating embeddings: ' + error.message, 'error');
+    } finally {
+        hideBulkProgress();
+    }
+}
+
+function showBulkProgress(message, total) {
+    const progressHtml = `
+        <div id="bulkProgressOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(0,0,0,0.5); z-index: 9999;">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h5>${message}</h5>
+                    <p class="text-muted mb-0">Processing ${total} target(s)...</p>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', progressHtml);
+}
+
+function hideBulkProgress() {
+    const overlay = document.getElementById('bulkProgressOverlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+</script>
+
+<script>
+function deleteTarget(targetId) {
+    if (confirm('Are you sure you want to delete this target?')) {
+        fetch(`/targets/${targetId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Failed to delete target');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting target');
+        });
+    }
+}
+
+function previewTarget(targetId, imageUrl) {
+    document.getElementById('previewModalTitle').textContent = `Target #${targetId} Preview`;
+    // Fix URL for preview modal
+    let fixedUrl = imageUrl;
+    if (!imageUrl.startsWith('http')) {
+        if (imageUrl.startsWith('static/')) {
+            fixedUrl = '/' + imageUrl;
+        } else {
+            fixedUrl = '/static/' + imageUrl;
+        }
+    }
+    document.getElementById('previewImage').src = fixedUrl;
+    new bootstrap.Modal(document.getElementById('targetPreviewModal')).show();
+}
+
+// Sample distinctive target images - photo-realistic objects
+const sampleTargets = [
+    {
+        url: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=500&h=500&fit=crop&crop=center'
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500&h=500&fit=crop&crop=center',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=500&h=500&fit=crop&crop=center',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1459411621453-7b03977f4bfc?w=500&h=500&fit=crop&crop=center',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=500&fit=crop&crop=center',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=500&h=500&fit=crop&crop=center',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=500&h=500&fit=crop&crop=center',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=500&h=500&fit=crop&crop=center',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=500&h=500&fit=crop&crop=center',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?w=500&h=500&fit=crop&crop=center',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=500&h=500&fit=crop&crop=center',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1563298723-dcfebaa392e3?w=500&h=500&fit=crop&crop=center',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=500&h=500&fit=crop&crop=center',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop&crop=center',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&h=500&fit=crop&crop=center',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1595246140220-f0515c4d4dda?w=500&h=500&fit=crop&crop=center',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=500&h=500&fit=crop&crop=center',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=500&h=500&fit=crop&crop=center',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=500&h=500&fit=crop&crop=center',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1611915387288-fd8d2f5f928b?w=500&h=500&fit=crop&crop=center',
+    },
+    {
+        url: 'https://images.unsplash.com/photo-1514924013411-cbf25faa35bb?w=500&h=500&fit=crop&crop=center',
+    }
+];
+
+function addSampleTargets() {
+    if (confirm('This will add 21 distinctive photo-realistic target images. Continue?')) {
+        sampleTargets.forEach((target, index) => {
+            setTimeout(() => {
+                const formData = new FormData();
+                formData.append('uri', target.url);
+
+                
+                fetch('/targets/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (response.ok && index === sampleTargets.length - 1) {
+                        location.reload();
+                    }
+                })
+                .catch(error => console.error('Error adding sample target:', error));
+            }, index * 500); // Stagger requests
+        });
+    }
+}
+
+// Upload method toggle
+document.querySelectorAll('input[name="uploadMethod"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const urlSection = document.getElementById('urlSection');
+        const fileSection = document.getElementById('fileSection');
+        const targetUri = document.getElementById('targetUri');
+        const targetFile = document.getElementById('targetFile');
+        
+        if (this.value === 'url') {
+            urlSection.style.display = 'block';
+            fileSection.style.display = 'none';
+            targetUri.required = true;
+            targetFile.required = false;
+        } else {
+            urlSection.style.display = 'none';
+            fileSection.style.display = 'block';
+            targetUri.required = false;
+            targetFile.required = true;
+        }
+    });
+});
+
+// Preview uploaded file
+function previewUploadedFile(input) {
+    const file = input.files[0];
+    const preview = document.getElementById('filePreview');
+    const previewImg = document.getElementById('previewImg');
+    const fileInfo = document.getElementById('fileInfo');
+    
+    if (file) {
+        // Check file size (10MB limit)
+        if (file.size > 10 * 1024 * 1024) {
+            alert('File size must be less than 10MB');
+            input.value = '';
+            preview.style.display = 'none';
+            return;
+        }
+        
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            preview.style.display = 'block';
+            fileInfo.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+        };
+        reader.readAsDataURL(file);
+    } else {
+        preview.style.display = 'none';
+    }
+}
+
+// Preview image when URL is entered
+document.getElementById('targetUri').addEventListener('blur', function() {
+    const url = this.value;
+    if (url) {
+        // Add small preview
+        console.log('Image URL entered:', url);
+    }
+});
+</script>
+
+<style>
+.target-card {
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.target-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border-color: var(--bs-primary);
+}
+
+.target-image {
+    transition: transform 0.3s ease;
+}
+
+.target-card:hover .target-image {
+    transform: scale(1.02);
+}
+
+.target-id-badge {
+    font-size: 0.9rem;
+    font-weight: bold;
+    padding: 0.5rem 0.75rem;
+    border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.small-icon {
+    width: 14px;
+    height: 14px;
+    vertical-align: baseline;
+}
+
+/* Bulk management styles */
+.bulk-actions-toolbar {
+    border-left: 4px solid #0d6efd;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.target-checkbox {
+    width: 1.2rem;
+    height: 1.2rem;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.target-checkbox:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.target-card.selected {
+    border: 2px solid #0d6efd;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(13, 110, 253, 0.15);
+}
+
+.bulk-selection-info {
+    font-weight: 500;
+    color: #495057;
+}
+
+#bulkProgressOverlay .card {
+    min-width: 300px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+.form-check-input:focus {
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.alert-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+
+/* Make target cards more distinctive */
+.target-card:nth-child(3n+1) {
+    border-left: 4px solid #e74c3c;
+}
+
+.target-card:nth-child(3n+2) {
+    border-left: 4px solid #3498db;
+}
+
+.target-card:nth-child(3n+3) {
+    border-left: 4px solid #2ecc71;
+}
+</style>
+{% endblock %}

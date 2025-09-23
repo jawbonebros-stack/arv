@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful - ARVLab</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@0.294.0/dist/umd/lucide.js"></script>
+</head>
+<body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
+    
+    <div class="container-fluid h-100 d-flex align-items-center justify-content-center">
+        <div class="row justify-content-center w-100">
+            <div class="col-md-6 col-lg-5">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-body text-center p-5">
+                        
+                        {% if success %}
+                        <!-- Success State -->
+                        <div class="mb-4">
+                            <div class="bg-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                                <i data-lucide="check" style="width: 40px; height: 40px; color: white;"></i>
+                            </div>
+                        </div>
+                        
+                        <h2 class="fw-bold mb-3">Payment Successful!</h2>
+                        
+                        {% if credits_added %}
+                        <div class="alert alert-success border-0 mb-4">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i data-lucide="plus-circle" class="me-2" style="width: 20px; height: 20px;"></i>
+                                <strong>{{ credits_added }} credits added to your account!</strong>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <p class="text-muted mb-4">
+                            Thank you for your purchase. Your payment has been processed successfully.
+                        </p>
+                        
+                        {% if need_login %}
+                        <!-- Login Required -->
+                        <div class="alert alert-info border-0 mb-4">
+                            <i data-lucide="info" class="me-2" style="width: 16px; height: 16px;"></i>
+                            Please log in to access your credits.
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="/login" class="btn btn-primary btn-lg">
+                                <i data-lucide="log-in" class="me-2" style="width: 18px; height: 18px;"></i>
+                                Log In to Your Account
+                            </a>
+                            <a href="/" class="btn btn-outline-secondary">Return to Homepage</a>
+                        </div>
+                        {% else %}
+                        <!-- User Logged In -->
+                        <div class="d-grid gap-2">
+                            <a href="/dashboard" class="btn btn-primary btn-lg">
+                                <i data-lucide="activity" class="me-2" style="width: 18px; height: 18px;"></i>
+                                View Dashboard
+                            </a>
+                            <a href="/account/credits" class="btn btn-outline-primary">
+                                <i data-lucide="credit-card" class="me-2" style="width: 16px; height: 16px;"></i>
+                                View Credit History
+                            </a>
+                            <a href="/trials" class="btn btn-outline-secondary">
+                                <i data-lucide="eye" class="me-2" style="width: 16px; height: 16px;"></i>
+                                Browse Tasks
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        {% if session_id %}
+                        <div class="mt-4 pt-3 border-top">
+                            <small class="text-muted">
+                                <strong>Transaction ID:</strong> {{ session_id[:10] }}...
+                            </small>
+                        </div>
+                        {% endif %}
+                        
+                        {% else %}
+                        <!-- Error State -->
+                        <div class="mb-4">
+                            <div class="bg-warning rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                                <i data-lucide="alert-triangle" style="width: 40px; height: 40px; color: white;"></i>
+                            </div>
+                        </div>
+                        
+                        <h2 class="fw-bold mb-3">Payment Status Unknown</h2>
+                        <p class="text-muted mb-4">
+                            We're unable to verify your payment status right now. Please check your account or contact support.
+                        </p>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="/account/credits" class="btn btn-primary">Check Account</a>
+                            <a href="/purchase-credits" class="btn btn-outline-secondary">Return to Purchase</a>
+                        </div>
+                        {% endif %}
+                        
+                    </div>
+                </div>
+                
+                <!-- Support Note -->
+                <div class="text-center mt-4">
+                    <small class="text-white-50">
+                        Questions about your purchase? <a href="mailto:support@arvlab.app" class="text-white">Contact Support</a>
+                    </small>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.initializeLucideIcons();
+        
+        // Auto-redirect to dashboard after 10 seconds if successful
+        {% if success and user and not need_login %}
+        setTimeout(() => {
+            window.location.href = '/dashboard';
+        }, 10000);
+        {% endif %}
+    </script>
+</body>
+</html>

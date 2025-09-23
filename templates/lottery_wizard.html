@@ -1,0 +1,480 @@
+{% extends "base.html" %}
+
+{% block title %}Create Lottery Task - ARVLab{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i data-lucide="target" class="me-2 text-secondary"></i>
+                    Create Lottery Task
+                </h1>
+                <a href="/admin" class="btn btn-outline-secondary">
+                    <i data-lucide="arrow-left" class="me-2"></i>Back to Admin
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light border-bottom">
+                    <h5 class="mb-0 text-dark">
+                        <i data-lucide="dice-6" class="me-2"></i>
+                        Lottery Task Setup Wizard
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Progress Steps -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="progress mb-3" style="height: 4px;">
+                                <div class="progress-bar bg-secondary" role="progressbar" style="width: 20%" id="progress-bar"></div>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <small class="step-label active" id="step-label-1">Task Details</small>
+                                <small class="step-label" id="step-label-2">Ball Configuration</small>
+                                <small class="step-label" id="step-label-3">Timing</small>
+                                <small class="step-label" id="step-label-4">Target Assignment</small>
+                                <small class="step-label" id="step-label-5">Review</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="lottery-wizard-form" action="/admin/lottery/create" method="post">
+                        
+                        <!-- Step 1: Task Details -->
+                        <div class="wizard-step active" id="step-1">
+                            <h6 class="mb-3">
+                                <i data-lucide="file-text" class="me-2"></i>
+                                Step 1: Task Details
+                            </h6>
+                            
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label for="title" class="form-label">Task Title *</label>
+                                        <input type="text" class="form-control" id="title" name="title" 
+                                               placeholder="e.g., Mega Millions January 2025" required>
+                                        <div class="form-text">Choose a descriptive name for your lottery task</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="draft_seconds" class="form-label">Planning Time</label>
+                                        <select class="form-select" id="draft_seconds" name="draft_seconds">
+                                            <option value="300">5 minutes</option>
+                                            <option value="600">10 minutes</option>
+                                            <option value="900" selected>15 minutes</option>
+                                            <option value="1800">30 minutes</option>
+                                        </select>
+                                        <div class="form-text">Time for participants to plan their approach</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info">
+                                <i data-lucide="info" class="me-2"></i>
+                                <strong>Enhanced Lottery Tasks:</strong> Participants can add specific descriptors for each individual ball, allowing detailed sensory impressions across all 6 categories (Colours, Tactile, Energy, Smell, Sound, Visual).
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Ball Configuration -->
+                        <div class="wizard-step" id="step-2" style="display: none;">
+                            <h6 class="mb-3">
+                                <i data-lucide="grid" class="me-2"></i>
+                                Step 2: Ball Configuration
+                            </h6>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="ball_count" class="form-label">Number of Balls *</label>
+                                        <select class="form-select" id="ball_count" name="ball_count" onchange="updateBallPreview()" required>
+                                            <option value="">Select number of balls</option>
+                                            <option value="2">2 balls</option>
+                                            <option value="3">3 balls</option>
+                                            <option value="4">4 balls</option>
+                                            <option value="5" selected>5 balls (recommended)</option>
+                                            <option value="6">6 balls</option>
+                                            <option value="7">7 balls</option>
+                                            <option value="8">8 balls</option>
+                                            <option value="9">9 balls</option>
+                                            <option value="10">10 balls</option>
+                                        </select>
+                                        <div class="form-text">More balls provide richer descriptor data</div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="ball_range" class="form-label">Ball Number Range *</label>
+                                        <select class="form-select" id="ball_range" name="ball_range" required>
+                                            <option value="1-10">1 to 10</option>
+                                            <option value="1-20">1 to 20</option>
+                                            <option value="1-49" selected>1 to 49 (standard)</option>
+                                            <option value="1-59">1 to 59</option>
+                                            <option value="1-69">1 to 69</option>
+                                            <option value="1-99">1 to 99</option>
+                                        </select>
+                                        <div class="form-text">Range for random ball selection</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Ball Preview -->
+                            <div class="mt-3">
+                                <h6 class="text-muted">Ball Preview:</h6>
+                                <div id="ball-preview" class="d-flex flex-wrap gap-2">
+                                    <!-- Dynamic ball preview will be inserted here -->
+                                </div>
+                            </div>
+
+                            <div class="alert alert-warning mt-3">
+                                <i data-lucide="zap" class="me-2"></i>
+                                <strong>Ball-Specific Descriptors:</strong> Each ball will have its own descriptor section where participants can record sensory impressions specifically for that ball, enabling more granular remote viewing data collection.
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Timing -->
+                        <div class="wizard-step" id="step-3" style="display: none;">
+                            <h6 class="mb-3">
+                                <i data-lucide="clock" class="me-2"></i>
+                                Step 3: Timing Configuration
+                            </h6>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="result_date" class="form-label">Result Date *</label>
+                                        <input type="date" class="form-control" id="result_date" name="result_date" 
+                                               min="{{ today }}" required>
+                                        <div class="form-text">When will the lottery results be available?</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="result_time" class="form-label">Result Time *</label>
+                                        <input type="time" class="form-control" id="result_time" name="result_time" 
+                                               value="20:00" required>
+                                        <div class="form-text">Time zone: UTC</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="auto_start" name="auto_start" checked>
+                                    <label class="form-check-label" for="auto_start">
+                                        Start trial immediately after creation
+                                    </label>
+                                    <div class="form-text">Uncheck to keep trial in draft status</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Target Assignment -->
+                        <div class="wizard-step" id="step-4" style="display: none;">
+                            <h6 class="mb-3">
+                                <i data-lucide="target" class="me-2"></i>
+                                Step 4: Target Assignment Strategy
+                            </h6>
+                            
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="target_strategy" id="auto_assign" value="auto" checked>
+                                    <label class="form-check-label" for="auto_assign">
+                                        <strong>Automatic Assignment (Recommended)</strong>
+                                        <div class="form-text">AI will select maximally distinct targets for each ball based on visual contrast principles</div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="target_strategy" id="manual_assign" value="manual">
+                                    <label class="form-check-label" for="manual_assign">
+                                        <strong>Manual Assignment</strong>
+                                        <div class="form-text">You'll select specific targets for each ball after trial creation</div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div id="target-preview" class="mt-3" style="display: none;">
+                                <h6 class="text-muted">Available Targets: <span id="target-count">0</span></h6>
+                                <div class="alert alert-info">
+                                    <i data-lucide="eye" class="me-2"></i>
+                                    Target assignment ensures optimal visual distinctiveness for ARV sessions
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 5: Review -->
+                        <div class="wizard-step" id="step-5" style="display: none;">
+                            <h6 class="mb-3">
+                                <i data-lucide="check-circle" class="me-2"></i>
+                                Step 5: Review & Create
+                            </h6>
+                            
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Trial Summary</h6>
+                                </div>
+                                <div class="card-body">
+                                    <dl class="row">
+                                        <dt class="col-sm-4">Title:</dt>
+                                        <dd class="col-sm-8" id="review-title">-</dd>
+                                        
+                                        <dt class="col-sm-4">Type:</dt>
+                                        <dd class="col-sm-8">
+                                            <span class="badge bg-primary">Enhanced Lottery Trial</span>
+                                            <small class="text-muted d-block">With ball-specific descriptors</small>
+                                        </dd>
+                                        
+                                        <dt class="col-sm-4">Configuration:</dt>
+                                        <dd class="col-sm-8" id="review-config">-</dd>
+                                        
+                                        <dt class="col-sm-4">Result Time:</dt>
+                                        <dd class="col-sm-8" id="review-timing">-</dd>
+                                        
+                                        <dt class="col-sm-4">Target Strategy:</dt>
+                                        <dd class="col-sm-8" id="review-targets">-</dd>
+                                        
+                                        <dt class="col-sm-4">Planning Time:</dt>
+                                        <dd class="col-sm-8" id="review-planning">-</dd>
+                                    </dl>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-success mt-3">
+                                <i data-lucide="star" class="me-2"></i>
+                                <strong>Enhanced Features:</strong>
+                                <ul class="mb-0 mt-2">
+                                    <li>Individual descriptor forms for each ball</li>
+                                    <li>Six sensory categories per ball</li>
+                                    <li>Real-time descriptor submission</li>
+                                    <li>Color-coded category organization</li>
+                                    <li>Collaborative descriptor development</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Buttons -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="button" class="btn btn-outline-secondary" id="prev-btn" 
+                                    onclick="previousStep()" style="display: none;">
+                                <i data-lucide="arrow-left" class="me-2"></i>Previous
+                            </button>
+                            
+                            <div class="ms-auto">
+                                <button type="button" class="btn btn-primary" id="next-btn" onclick="nextStep()">
+                                    Next<i data-lucide="arrow-right" class="ms-2"></i>
+                                </button>
+                                
+                                <button type="submit" class="btn btn-success" id="create-btn" style="display: none;">
+                                    <i data-lucide="plus" class="me-2"></i>Create Lottery Trial
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.step-label {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.step-label.active {
+    color: #0d6efd;
+    font-weight: 600;
+}
+
+.ball-preview-item {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    border-radius: 50%;
+    color: white;
+    text-align: center;
+    line-height: 40px;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.wizard-step {
+    min-height: 400px;
+}
+
+.form-text {
+    font-size: 0.825rem;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentStep = 1;
+const totalSteps = 5;
+
+// Update ball preview
+function updateBallPreview() {
+    const ballCount = document.getElementById('ball_count').value;
+    const ballRange = document.getElementById('ball_range').value;
+    const preview = document.getElementById('ball-preview');
+    
+    if (!ballCount) {
+        preview.innerHTML = '<span class="text-muted">Select number of balls to see preview</span>';
+        return;
+    }
+    
+    const [min, max] = ballRange.split('-').map(Number);
+    preview.innerHTML = '';
+    
+    // Generate random ball numbers for preview
+    const usedNumbers = new Set();
+    for (let i = 0; i < parseInt(ballCount); i++) {
+        let num;
+        do {
+            num = Math.floor(Math.random() * (max - min + 1)) + min;
+        } while (usedNumbers.has(num));
+        usedNumbers.add(num);
+        
+        const ball = document.createElement('div');
+        ball.className = 'ball-preview-item';
+        ball.textContent = num;
+        preview.appendChild(ball);
+    }
+}
+
+function nextStep() {
+    if (!validateCurrentStep()) return;
+    
+    if (currentStep < totalSteps) {
+        // Hide current step
+        document.getElementById(`step-${currentStep}`).style.display = 'none';
+        document.getElementById(`step-label-${currentStep}`).classList.remove('active');
+        
+        // Show next step
+        currentStep++;
+        document.getElementById(`step-${currentStep}`).style.display = 'block';
+        document.getElementById(`step-label-${currentStep}`).classList.add('active');
+        
+        // Update progress bar
+        const progress = (currentStep / totalSteps) * 100;
+        document.getElementById('progress-bar').style.width = progress + '%';
+        
+        // Update buttons
+        document.getElementById('prev-btn').style.display = 'inline-block';
+        
+        if (currentStep === totalSteps) {
+            document.getElementById('next-btn').style.display = 'none';
+            document.getElementById('create-btn').style.display = 'inline-block';
+            updateReviewSummary();
+        }
+    }
+}
+
+function previousStep() {
+    if (currentStep > 1) {
+        // Hide current step
+        document.getElementById(`step-${currentStep}`).style.display = 'none';
+        document.getElementById(`step-label-${currentStep}`).classList.remove('active');
+        
+        // Show previous step
+        currentStep--;
+        document.getElementById(`step-${currentStep}`).style.display = 'block';
+        document.getElementById(`step-label-${currentStep}`).classList.add('active');
+        
+        // Update progress bar
+        const progress = (currentStep / totalSteps) * 100;
+        document.getElementById('progress-bar').style.width = progress + '%';
+        
+        // Update buttons
+        if (currentStep === 1) {
+            document.getElementById('prev-btn').style.display = 'none';
+        }
+        
+        document.getElementById('next-btn').style.display = 'inline-block';
+        document.getElementById('create-btn').style.display = 'none';
+    }
+}
+
+function validateCurrentStep() {
+    const step = document.getElementById(`step-${currentStep}`);
+    const requiredInputs = step.querySelectorAll('[required]');
+    
+    for (let input of requiredInputs) {
+        if (!input.value.trim()) {
+            input.focus();
+            input.classList.add('is-invalid');
+            setTimeout(() => input.classList.remove('is-invalid'), 3000);
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+function updateReviewSummary() {
+    const title = document.getElementById('title').value;
+    const ballCount = document.getElementById('ball_count').value;
+    const ballRange = document.getElementById('ball_range').value;
+    const resultDate = document.getElementById('result_date').value;
+    const resultTime = document.getElementById('result_time').value;
+    const draftSeconds = document.getElementById('draft_seconds').value;
+    const targetStrategy = document.querySelector('input[name="target_strategy"]:checked').value;
+    
+    document.getElementById('review-title').textContent = title;
+    document.getElementById('review-config').textContent = `${ballCount} balls from range ${ballRange}`;
+    document.getElementById('review-timing').textContent = `${resultDate} at ${resultTime} UTC`;
+    document.getElementById('review-targets').textContent = targetStrategy === 'auto' ? 'Automatic (AI-selected)' : 'Manual assignment';
+    document.getElementById('review-planning').textContent = `${Math.floor(draftSeconds / 60)} minutes`;
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('result_date').setAttribute('min', today);
+    
+    // Initialize ball preview
+    updateBallPreview();
+    
+    // Load target count
+    fetch('/api/targets/count')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('target-count').textContent = data.count || 0;
+        })
+        .catch(() => {
+            document.getElementById('target-count').textContent = 'Unknown';
+        });
+});
+
+// Form submission
+document.getElementById('lottery-wizard-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Show loading state
+    const createBtn = document.getElementById('create-btn');
+    const originalText = createBtn.innerHTML;
+    createBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
+    createBtn.disabled = true;
+    
+    // Submit form
+    this.submit();
+});
+</script>
+{% endblock %}

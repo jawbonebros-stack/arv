@@ -1,0 +1,795 @@
+{% extends "base.html" %}
+
+{% block title %}ARV Session - {{ trial.title }} - ARVLab{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="h2 mb-3 text-dark">ARV Session: {{ trial.title }}</h1>
+                            <p class="text-muted mb-2">
+                                {% if is_single_target %}
+                                Focus your remote viewing impressions on the target below
+                                {% else %}
+                                Record your impressions for each outcome systematically  
+                                {% endif %}
+                            </p>
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="badge bg-light text-dark border">
+                                    <i class="lucide-hash" style="width: 14px; height: 14px;"></i>
+                                    Target: {{ trial.target_number or 'TBD' }}
+                                </span>
+                                <span class="badge bg-light text-dark border">
+                                    <i class="lucide-clock" style="width: 14px; height: 14px;"></i>
+                                    {{ trial.status|title }}
+                                </span>
+                            </div>
+                        </div>
+                        <a href="/trials/{{ trial.id }}" class="btn btn-outline-secondary">
+                            <i class="lucide-arrow-left" style="width: 16px; height: 16px;"></i>
+                            Back to Task
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if not is_single_target %}
+    <!-- Multi-Target Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="mb-3 text-dark">Outcome Navigation</h5>
+                    <div class="outcome-navigation d-flex flex-wrap gap-3">
+                        {% for outcome in outcomes %}
+                        <button class="outcome-nav-btn{% if loop.index == 1 %} active{% endif %}" 
+                                data-outcome="{{ loop.index }}"
+                                onclick="switchOutcome({{ loop.index }})">
+                            <div class="outcome-number">{{ loop.index }}</div>
+                            <div class="outcome-label">{{ outcome.label[:12] }}</div>
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Single Target Notice -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info border-0 shadow-sm">
+                <div class="d-flex align-items-center">
+                    <i class="lucide-target text-info me-3" style="width: 24px; height: 24px;"></i>
+                    <div>
+                        <h6 class="mb-1 fw-bold">Single Target ARV Session</h6>
+                        <p class="mb-0 small">Focus your impressions on the target below. This follows proper ARV methodology by preventing displacement to multiple targets.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Session Forms -->
+    {% for outcome in outcomes %}
+    <div class="row outcome-session" id="outcome-session-{{ loop.index }}"
+         style="{% if loop.index != 1 %}display: none;{% endif %}">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        {% if is_single_target %}
+                        <h4 class="text-dark mb-0">Target Impressions</h4>
+                        {% else %}
+                        <h4 class="text-dark mb-0">Outcome {{ loop.index }}: {{ outcome.label }}</h4>
+                        {% endif %}
+                        <span class="text-muted small" id="session-status-{{ loop.index }}">Ready</span>
+                    </div>
+                    
+                    {% if is_single_target %}
+                    <div class="alert alert-light border-0 mb-4">
+                        <p class="mb-0 small text-muted">
+                            <i class="lucide-info text-muted me-2" style="width: 16px; height: 16px;"></i>
+                            Record your sensory impressions without knowing which outcome this target represents. Trust your perceptions.
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    <form id="session-form-{{ loop.index }}" class="needs-validation" novalidate>
+                        <div class="row g-4">
+                            <!-- Colors Section -->
+                            <div class="col-md-6">
+                                <div class="impression-category">
+                                    <label class="form-label fw-semibold">
+                                        <i class="lucide-droplet text-muted me-2" style="width: 16px; height: 16px;"></i>
+                                        Colors
+                                    </label>
+                                    <textarea class="form-control impression-input" 
+                                              name="colours" 
+                                              rows="4" 
+                                              placeholder="Describe colors you perceive... (e.g., deep blue, golden yellow, earth tones)"
+                                              maxlength="500"></textarea>
+                                    <div class="form-text">
+                                        <span class="char-count" data-target="colours">0</span>/500 characters
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tactile Section -->
+                            <div class="col-md-6">
+                                <div class="impression-category">
+                                    <label class="form-label fw-semibold">
+                                        <i class="lucide-hand text-muted me-2" style="width: 16px; height: 16px;"></i>
+                                        Tactile
+                                    </label>
+                                    <textarea class="form-control impression-input" 
+                                              name="tactile" 
+                                              rows="4" 
+                                              placeholder="Describe textures and physical sensations... (e.g., rough, smooth, warm, cold)"
+                                              maxlength="500"></textarea>
+                                    <div class="form-text">
+                                        <span class="char-count" data-target="tactile">0</span>/500 characters
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Energy Section -->
+                            <div class="col-md-6">
+                                <div class="impression-category">
+                                    <label class="form-label fw-semibold">
+                                        <i class="lucide-zap text-muted me-2" style="width: 16px; height: 16px;"></i>
+                                        Energy
+                                    </label>
+                                    <textarea class="form-control impression-input" 
+                                              name="energy" 
+                                              rows="4" 
+                                              placeholder="Describe energy and vibrational qualities... (e.g., high energy, calm, pulsing)"
+                                              maxlength="500"></textarea>
+                                    <div class="form-text">
+                                        <span class="char-count" data-target="energy">0</span>/500 characters
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Smell Section -->
+                            <div class="col-md-6">
+                                <div class="impression-category">
+                                    <label class="form-label fw-semibold">
+                                        <i class="lucide-wind text-muted me-2" style="width: 16px; height: 16px;"></i>
+                                        Smell
+                                    </label>
+                                    <textarea class="form-control impression-input" 
+                                              name="smell" 
+                                              rows="4" 
+                                              placeholder="Describe scents and aromatic qualities... (e.g., fresh, floral, earthy, metallic)"
+                                              maxlength="500"></textarea>
+                                    <div class="form-text">
+                                        <span class="char-count" data-target="smell">0</span>/500 characters
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sound Section -->
+                            <div class="col-md-6">
+                                <div class="impression-category">
+                                    <label class="form-label fw-semibold">
+                                        <i class="lucide-volume-2 text-muted me-2" style="width: 16px; height: 16px;"></i>
+                                        Sound
+                                    </label>
+                                    <textarea class="form-control impression-input" 
+                                              name="sound" 
+                                              rows="4" 
+                                              placeholder="Describe sounds and auditory impressions... (e.g., quiet, loud, rhythmic, sharp)"
+                                              maxlength="500"></textarea>
+                                    <div class="form-text">
+                                        <span class="char-count" data-target="sound">0</span>/500 characters
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Visual Section -->
+                            <div class="col-md-6">
+                                <div class="impression-category">
+                                    <label class="form-label fw-semibold">
+                                        <i class="lucide-eye text-muted me-2" style="width: 16px; height: 16px;"></i>
+                                        Visual
+                                    </label>
+                                    <textarea class="form-control impression-input" 
+                                              name="visual" 
+                                              rows="4" 
+                                              placeholder="Describe visual impressions and shapes... (e.g., angular, curved, bright, shadowy)"
+                                              maxlength="500"></textarea>
+                                    <div class="form-text">
+                                        <span class="char-count" data-target="visual">0</span>/500 characters
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                            {% if not is_single_target %}
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-secondary" 
+                                        onclick="previousOutcome()" id="prev-btn-{{ loop.index }}">
+                                    <i class="lucide-chevron-left" style="width: 16px; height: 16px;"></i>
+                                    Previous
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" 
+                                        onclick="nextOutcome()" id="next-btn-{{ loop.index }}">
+                                    Next
+                                    <i class="lucide-chevron-right" style="width: 16px; height: 16px;"></i>
+                                </button>
+                            </div>
+                            {% else %}
+                            <div></div>
+                            {% endif %}
+                            
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-outline-secondary" onclick="clearForm({{ loop.index }})">
+                                    <i class="lucide-rotate-ccw" style="width: 16px; height: 16px;"></i>
+                                    Clear
+                                </button>
+                                <button type="button" class="btn btn-primary" 
+                                        onclick="saveImpressions({{ loop.index }})" 
+                                        id="save-btn-{{ loop.index }}">
+                                    <i class="lucide-save" style="width: 16px; height: 16px;"></i>
+                                    {% if is_single_target %}
+                                    Save Impressions
+                                    {% else %}
+                                    Save Outcome {{ loop.index }}
+                                    {% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-success">
+                    <i class="lucide-check-circle text-success me-2" style="width: 20px; height: 20px;"></i>
+                    Impressions Saved Successfully
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0" id="success-message">Your remote viewing impressions have been recorded.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Continue</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Outcome Navigation Styles */
+.outcome-nav-btn {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    min-width: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+}
+
+.outcome-nav-btn:hover {
+    border-color: #6c757d;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.outcome-nav-btn.active {
+    border-color: #495057;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.outcome-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #495057;
+    line-height: 1;
+}
+
+.outcome-nav-btn.active .outcome-number {
+    color: #212529;
+}
+
+.outcome-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.outcome-nav-btn.active .outcome-label {
+    color: #495057;
+    font-weight: 600;
+}
+
+/* Impression Category Styles */
+.impression-category {
+    height: 100%;
+}
+
+.impression-input {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    resize: vertical;
+    min-height: 120px;
+}
+
+.impression-input:focus {
+    border-color: #6c757d;
+    box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.1);
+}
+
+.impression-input:not(:placeholder-shown) {
+    border-color: #28a745;
+    background: linear-gradient(to right, #f8fff9 0%, #ffffff 10%);
+}
+
+.char-count {
+    font-weight: 500;
+}
+
+/* Loading States */
+.btn-loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.btn-loading::after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: button-loading-spin 1s ease infinite;
+}
+
+@keyframes button-loading-spin {
+    from {
+        transform: rotate(0turn);
+    }
+    to {
+        transform: rotate(1turn);
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .outcome-navigation {
+        justify-content: center;
+    }
+    
+    .outcome-nav-btn {
+        min-width: 80px;
+        padding: 0.75rem;
+    }
+    
+    .outcome-number {
+        font-size: 1.3rem;
+    }
+    
+    .outcome-label {
+        font-size: 0.7rem;
+    }
+}
+
+/* Animation for form transitions */
+.outcome-session {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+
+<script>
+// Global variables
+let currentOutcome = 1;
+const totalOutcomes = {{ outcomes|length }};
+const isSingleTarget = {{ 'true' if is_single_target else 'false' }};
+const trialId = {{ trial.id }};
+
+// Character counting for textareas
+function initializeCharacterCounting() {
+    document.querySelectorAll('.impression-input').forEach(textarea => {
+        const updateCount = () => {
+            const counter = textarea.parentElement.querySelector('.char-count[data-target="' + textarea.name + '"]');
+            if (counter) {
+                const count = textarea.value.length;
+                counter.textContent = count;
+                counter.style.color = count > 400 ? '#dc3545' : '#6c757d';
+            }
+        };
+        
+        textarea.addEventListener('input', updateCount);
+        updateCount(); // Initial count
+    });
+}
+
+// Switch between outcomes (multi-target only)
+function switchOutcome(outcomeNumber) {
+    if (isSingleTarget) return;
+    
+    console.log('Switching to outcome:', outcomeNumber);
+    
+    // Hide current session
+    const currentSession = document.getElementById(`outcome-session-${currentOutcome}`);
+    if (currentSession) {
+        currentSession.style.display = 'none';
+    }
+    
+    // Remove active state from current button
+    const currentBtn = document.querySelector('.outcome-nav-btn.active');
+    if (currentBtn) {
+        currentBtn.classList.remove('active');
+    }
+    
+    // Update current outcome
+    currentOutcome = outcomeNumber;
+    
+    // Show new session
+    const newSession = document.getElementById(`outcome-session-${currentOutcome}`);
+    if (newSession) {
+        newSession.style.display = 'block';
+    }
+    
+    // Add active state to new button
+    const newBtn = document.querySelector(`[data-outcome="${currentOutcome}"]`);
+    if (newBtn) {
+        newBtn.classList.add('active');
+    }
+    
+    // Update navigation buttons
+    updateNavigationButtons();
+    
+    // Scroll to top smoothly
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Navigation functions
+function nextOutcome() {
+    if (currentOutcome < totalOutcomes) {
+        switchOutcome(currentOutcome + 1);
+    }
+}
+
+function previousOutcome() {
+    if (currentOutcome > 1) {
+        switchOutcome(currentOutcome - 1);
+    }
+}
+
+function updateNavigationButtons() {
+    if (isSingleTarget) return;
+    
+    const prevBtn = document.getElementById(`prev-btn-${currentOutcome}`);
+    const nextBtn = document.getElementById(`next-btn-${currentOutcome}`);
+    
+    if (prevBtn) prevBtn.disabled = currentOutcome === 1;
+    if (nextBtn) nextBtn.disabled = currentOutcome === totalOutcomes;
+}
+
+// Clear form function
+function clearForm(outcomeNumber) {
+    const form = document.getElementById(`session-form-${outcomeNumber}`);
+    if (form) {
+        const confirmed = confirm('Are you sure you want to clear all impressions for this ' + (isSingleTarget ? 'target' : 'outcome') + '?');
+        if (confirmed) {
+            form.reset();
+            // Trigger character count updates
+            form.querySelectorAll('.impression-input').forEach(input => {
+                input.dispatchEvent(new Event('input'));
+            });
+        }
+    }
+}
+
+// Show AI analysis results function
+function showAnalysisResults(analysis, message) {
+    // Create analysis results modal
+    const modalHTML = `
+        <div class="modal fade" id="analysisResultsModal" tabindex="-1" aria-labelledby="analysisResultsModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="analysisResultsModalLabel">
+                            <i class="lucide-brain" style="width: 20px; height: 20px; margin-right: 8px;"></i>
+                            AI Analysis Results
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-success">
+                            <i class="lucide-check-circle" style="width: 16px; height: 16px; margin-right: 8px;"></i>
+                            ${message}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h6 class="fw-bold mb-3">🎯 Best Target Match</h6>
+                            <div class="card border-primary">
+                                <div class="card-body">
+                                    <h6 class="card-title text-primary">${analysis.recommended_target.target_name}</h6>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span>Overall Match:</span>
+                                            <span class="fw-bold text-primary">${Math.round(analysis.recommended_target.overall_match * 100)}%</span>
+                                        </div>
+                                        <div class="progress mt-1" style="height: 8px;">
+                                            <div class="progress-bar bg-primary" style="width: ${analysis.recommended_target.overall_match * 100}%"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <h6 class="mb-2">Category Breakdown:</h6>
+                                    <div class="row g-2" id="categoryBreakdown">
+                                        ${Object.entries(analysis.recommended_target.category_matches).map(([category, score]) => `
+                                            <div class="col-6">
+                                                <div class="small">
+                                                    <div class="d-flex justify-content-between">
+                                                        <span>${getCategoryDisplayName(category)}:</span>
+                                                        <span class="fw-bold">${Math.round(score * 100)}%</span>
+                                                    </div>
+                                                    <div class="progress" style="height: 4px;">
+                                                        <div class="progress-bar" style="width: ${score * 100}%; background-color: ${getCategoryColor(category)};"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                    
+                                    <div class="mt-3">
+                                        <h6 class="mb-2">AI Reasoning:</h6>
+                                        <p class="small text-muted">${analysis.recommended_target.reasoning}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${analysis.all_targets.length > 1 ? `
+                            <div class="mb-3">
+                                <h6 class="fw-bold mb-3">📊 All Target Comparisons</h6>
+                                <div class="row g-3">
+                                    ${analysis.all_targets.map(target => `
+                                        <div class="col-md-6">
+                                            <div class="card ${target.target_id === analysis.recommended_target.target_id ? 'border-primary' : 'border-light'}">
+                                                <div class="card-body p-3">
+                                                    <h6 class="card-title small">${target.target_name}</h6>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <span class="small">Match:</span>
+                                                        <span class="fw-bold ${target.target_id === analysis.recommended_target.target_id ? 'text-primary' : ''}">${Math.round(target.overall_match * 100)}%</span>
+                                                    </div>
+                                                    <div class="progress mt-1" style="height: 6px;">
+                                                        <div class="progress-bar ${target.target_id === analysis.recommended_target.target_id ? 'bg-primary' : 'bg-secondary'}" style="width: ${target.overall_match * 100}%"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="mt-3">
+                            <h6 class="fw-bold mb-2">💡 Analysis Summary</h6>
+                            <p class="small text-muted">${analysis.analysis_summary}</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="shareResults()">
+                            <i class="lucide-share-2" style="width: 16px; height: 16px; margin-right: 4px;"></i>
+                            Share Results
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if present
+    const existingModal = document.getElementById('analysisResultsModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add modal to page
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Initialize and show modal
+    const modal = new bootstrap.Modal(document.getElementById('analysisResultsModal'));
+    modal.show();
+    
+    // Initialize Lucide icons in the modal
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
+    }
+}
+
+// Helper function to get category colors and display names
+function getCategoryColor(category) {
+    const colors = {
+        'colours': '#dc3545',     // red
+        'tactile': '#28a745',    // green  
+        'energy': '#ffc107',     // yellow
+        'smell': '#17a2b8',      // cyan
+        'sound': '#6f42c1',      // purple
+        'visual': '#fd7e14'      // orange
+    };
+    return colors[category.toLowerCase()] || '#6c757d'; // default gray
+}
+
+// Helper function to get category display names
+function getCategoryDisplayName(category) {
+    const displayNames = {
+        'colours': 'Colors',
+        'tactile': 'Tactile',  
+        'energy': 'Energy',
+        'smell': 'Smell',
+        'sound': 'Sound',
+        'visual': 'Visual'
+    };
+    return displayNames[category.toLowerCase()] || category;
+}
+
+// Share results function
+function shareResults() {
+    const shareText = `🧠 Just completed an ARV (Associative Remote Viewing) session with AI analysis on ARVLab! 
+
+Got instant feedback on which target my impressions matched most closely. Fascinating to see how consciousness research meets cutting-edge AI! 🎯✨
+
+#RemoteViewing #ConsciousnessResearch #ARVLab #AI`;
+    
+    navigator.clipboard.writeText(shareText + `\n\n${window.location.href}`).then(() => {
+        alert('Results shared to clipboard!');
+    }).catch(() => {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = shareText + `\n\n${window.location.href}`;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('Results copied to clipboard!');
+    });
+}
+
+// Save impressions function
+async function saveImpressions(outcomeNumber) {
+    const form = document.getElementById(`session-form-${outcomeNumber}`);
+    const saveBtn = document.getElementById(`save-btn-${outcomeNumber}`);
+    const statusElement = document.getElementById(`session-status-${outcomeNumber}`);
+    
+    if (!form || !saveBtn) {
+        console.error('Form or button not found for outcome:', outcomeNumber);
+        alert('Error: Form elements not found');
+        return;
+    }
+    
+    // Set loading state
+    saveBtn.classList.add('btn-loading');
+    saveBtn.disabled = true;
+    statusElement.textContent = 'Saving...';
+    statusElement.className = 'text-warning small';
+    
+    try {
+        const formData = new FormData(form);
+        formData.append('outcome_number', outcomeNumber);
+        
+        const response = await fetch(`/api/trials/${trialId}/arv-descriptors`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Success state
+            saveBtn.innerHTML = '<i class="lucide-check" style="width: 16px; height: 16px;"></i> Saved!';
+            saveBtn.classList.remove('btn-primary', 'btn-loading');
+            saveBtn.classList.add('btn-success');
+            statusElement.textContent = 'Saved successfully';
+            statusElement.className = 'text-success small';
+            
+            // Check if AI analysis results are available
+            if (result.ai_analysis) {
+                showAnalysisResults(result.ai_analysis, result.message);
+            } else {
+                // Show basic success modal if no analysis
+                document.getElementById('success-message').textContent = result.message;
+                const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                successModal.show();
+            }
+            
+            // Reset button after 3 seconds
+            setTimeout(() => {
+                saveBtn.innerHTML = `<i class="lucide-save" style="width: 16px; height: 16px;"></i> ${isSingleTarget ? 'Save Impressions' : 'Save Outcome ' + outcomeNumber}`;
+                saveBtn.classList.remove('btn-success');
+                saveBtn.classList.add('btn-primary');
+                saveBtn.disabled = false;
+                statusElement.textContent = 'Ready';
+                statusElement.className = 'text-muted small';
+            }, 3000);
+            
+        } else {
+            throw new Error(result.message || 'Unknown error occurred');
+        }
+        
+    } catch (error) {
+        console.error('Error saving impressions:', error);
+        
+        // Error state
+        saveBtn.classList.remove('btn-loading');
+        saveBtn.disabled = false;
+        statusElement.textContent = 'Error occurred';
+        statusElement.className = 'text-danger small';
+        
+        alert('Error saving impressions: ' + error.message);
+        
+        // Reset status after 3 seconds
+        setTimeout(() => {
+            statusElement.textContent = 'Ready';
+            statusElement.className = 'text-muted small';
+        }, 3000);
+    }
+}
+
+// Initialize page when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('ARV Wizard initialized');
+    
+    // Initialize character counting
+    initializeCharacterCounting();
+    
+    // Set up initial navigation state
+    updateNavigationButtons();
+    
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
+    }
+});
+</script>
+{% endblock %}

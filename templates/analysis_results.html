@@ -1,0 +1,438 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="h4 mb-1">AI Analysis Results</h2>
+                    <p class="text-muted mb-0">{{ trial.title }}</p>
+                </div>
+                <a href="/trials/{{ trial.id }}" class="btn btn-outline-secondary">
+                    <i data-lucide="arrow-left" class="me-1"></i>Back to Task
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% if analysis %}
+    <!-- Recommended Target -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i data-lucide="target" class="me-2"></i>Recommended Target
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h4 class="text-success">{{ analysis.recommended_target.target_name }}</h4>
+                            <div class="progress mb-3" style="height: 20px;">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: {{ analysis.recommended_target.overall_match }}%"
+                                     aria-valuenow="{{ analysis.recommended_target.overall_match }}" 
+                                     aria-valuemin="0" aria-valuemax="100">
+                                    {{ "%.1f"|format(analysis.recommended_target.overall_match) }}% Match
+                                </div>
+                            </div>
+                            <p class="mb-2"><strong>Analysis:</strong></p>
+                            <p class="text-muted">{{ analysis.recommended_target.reasoning }}</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            {% if winning_target and winning_target.filename %}
+                            <img src="/static/targets/{{ winning_target.filename }}" 
+                                 alt="{{ analysis.recommended_target.target_name }}" 
+                                 class="img-fluid rounded shadow"
+                                 style="max-height: 200px; object-fit: cover;">
+                            <div class="mt-3">
+                                <button type="button" class="btn btn-primary btn-sm" onclick="openImmersiveView()">
+                                    <i data-lucide="maximize" class="me-1"></i>Enhanced View
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Breakdown -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i data-lucide="bar-chart-2" class="me-2"></i>Category Analysis Breakdown
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for category, score in analysis.recommended_target.category_matches.items() %}
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-medium">{{ category }}</span>
+                                <span class="badge {% if score >= 70 %}bg-success{% elif score >= 50 %}bg-warning{% else %}bg-secondary{% endif %}">
+                                    {{ "%.1f"|format(score) }}%
+                                </span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar {% if score >= 70 %}bg-success{% elif score >= 50 %}bg-warning{% else %}bg-secondary{% endif %}" 
+                                     role="progressbar" 
+                                     style="width: {{ score }}%"
+                                     aria-valuenow="{{ score }}" 
+                                     aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Results Comparison -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i data-lucide="trending-up" class="me-2"></i>All Target Comparisons
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for result in analysis.all_results %}
+                    <div class="row align-items-center mb-3 {% if result.target_name == analysis.recommended_target.target_name %}border border-success rounded p-2{% endif %}">
+                        <div class="col-md-3">
+                            <h6 class="mb-1">{{ result.target_name }}</h6>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span>Overall Match</span>
+                                <span class="fw-bold">{{ "%.1f"|format(result.overall_match) }}%</span>
+                            </div>
+                            <div class="progress mb-2" style="height: 12px;">
+                                <div class="progress-bar {% if result.target_name == analysis.recommended_target.target_name %}bg-success{% else %}bg-secondary{% endif %}" 
+                                     role="progressbar" 
+                                     style="width: {{ result.overall_match }}%"
+                                     aria-valuenow="{{ result.overall_match }}" 
+                                     aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                            </div>
+                            <div class="row">
+                                {% for category, score in result.category_matches.items() %}
+                                <div class="col-6 col-md-2 mb-1">
+                                    <small class="text-muted">{{ category }}: {{ "%.0f"|format(score) }}%</small>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% if not loop.last %}<hr>{% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analysis Summary -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i data-lucide="file-text" class="me-2"></i>Analysis Summary
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <pre class="mb-0">{{ analysis.summary }}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Social Sharing -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i data-lucide="share-2" class="me-2"></i>Share Your Results
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">Share your impressive ARV analysis results with the community!</p>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="shareText" class="form-label">Share Text</label>
+                            <textarea id="shareText" class="form-control" rows="3" readonly>Just completed an ARV task with {{ "%.1f"|format(analysis.recommended_target.overall_match) }}% accuracy on "{{ analysis.recommended_target.target_name }}"! 
+
+AI analysis shows strong matches in {{ analysis.recommended_target.category_matches.items()|selectattr('1', 'gt', 70)|map('first')|join(', ') or 'multiple categories' }}. 
+
+Remote viewing research continues to show promising results! #ARV #RemoteViewing #Consciousness</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Share Options</label>
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-primary" onclick="copyShareText()">
+                                    <i data-lucide="copy" class="me-1"></i>Copy Text
+                                </button>
+                                <a href="https://twitter.com/intent/tweet?text={{ ('Just completed an ARV task with ' + "%.1f"|format(analysis.recommended_target.overall_match) + '% accuracy! Remote viewing research shows promising results! #ARV #RemoteViewing')|urlencode }}" 
+                                   target="_blank" class="btn btn-info">
+                                    <i data-lucide="twitter" class="me-1"></i>Share on Twitter
+                                </a>
+                                <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.url|urlencode }}" 
+                                   target="_blank" class="btn btn-primary">
+                                    <i data-lucide="facebook" class="me-1"></i>Share on Facebook
+                                </a>
+                                <a href="https://www.reddit.com/submit?url={{ request.url|urlencode }}&title={{ ('ARV Analysis Results: ' + "%.1f"|format(analysis.recommended_target.overall_match) + '% Match')|urlencode }}" 
+                                   target="_blank" class="btn btn-warning">
+                                    <i data-lucide="message-circle" class="me-1"></i>Share on Reddit
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- No Analysis Available -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i data-lucide="alert-circle" class="text-muted mb-3" style="width: 48px; height: 48px;"></i>
+                    <h4 class="text-muted">No Analysis Available</h4>
+                    <p class="text-muted mb-4">AI analysis could not be performed for this viewing session. This may be because:</p>
+                    <ul class="list-unstyled text-muted">
+                        <li>• No viewing descriptions were submitted</li>
+                        <li>• The task is not yet complete</li>
+                        <li>• AI analysis is temporarily unavailable</li>
+                    </ul>
+                    <a href="/trials/{{ trial.id }}" class="btn btn-primary">
+                        <i data-lucide="arrow-left" class="me-1"></i>Return to Task
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Immersive View Modal -->
+<div class="modal fade" id="immersiveModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-0 bg-dark">
+                <h5 class="modal-title text-white">
+                    <i data-lucide="target" class="me-2"></i>{{ analysis.recommended_target.target_name if analysis else 'Target Image' }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="stopAmbientSound()"></button>
+            </div>
+            <div class="modal-body bg-dark d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+                <div class="text-center">
+                    {% if winning_target and winning_target.filename %}
+                    <div class="immersive-frame p-4" style="background: #2a2a2a; border-radius: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.8);">
+                        <img id="immersiveImage" 
+                             src="/static/targets/{{ winning_target.filename }}" 
+                             alt="{{ analysis.recommended_target.target_name }}" 
+                             class="img-fluid rounded"
+                             style="max-height: 70vh; max-width: 90vw; object-fit: contain; box-shadow: 0 0 30px rgba(255,255,255,0.1);">
+                    </div>
+                    <div class="mt-4">
+                        <button type="button" class="btn btn-outline-light me-3" onclick="toggleAmbientSound()">
+                            <i data-lucide="volume-2" class="me-1"></i><span id="audioToggleText">Play Ambient Sound</span>
+                        </button>
+                        <span class="badge bg-success fs-6">{{ "%.1f"|format(analysis.recommended_target.overall_match) if analysis else '0.0' }}% Match</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Audio element for ambient sound -->
+<audio id="ambientAudio" loop preload="auto">
+    <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LNeSMGLIHO8tiJOAcZaLvt559NEAxQp+PwtmMcBjiR1/LNeSMGLIHO8tiJOAcZaLvt559NEAxQp+PwtmMcBjiR1/LNeSMGLIHO8tiJOAcZaLvt559NEAxQp+PwtmMcBjiR1/LNeSMGLIHO8tiJOAcZaLvt559NEAxQp+PwtmMcBjiR1/LNeSMGLIHO8tiJOAcZaLvt559NEAxQp+PwtmMcBjiR1/LNeSMGLIHO8tiJOAcZaLvt559NEAxQp+PwtmMcBjiR1/LNeSMGLIHO8tiJOAcZaLvt559NEAxQp+PwtmMcBjiR1/LNeSMG" type="audio/wav">
+    <!-- Fallback: generated ambient noise will be loaded here -->
+</audio>
+
+<script>
+// Immersive View Functions
+function openImmersiveView() {
+    const modal = new bootstrap.Modal(document.getElementById('immersiveModal'));
+    modal.show();
+    
+    // Generate ambient sound when modal opens
+    generateAmbientSound();
+    
+    // Refresh icons
+    setTimeout(() => window.initializeLucideIcons(), 100);
+}
+
+function toggleAmbientSound() {
+    const audio = document.getElementById('ambientAudio');
+    const toggleText = document.getElementById('audioToggleText');
+    const toggleIcon = document.querySelector('#audioToggleText').previousElementSibling;
+    
+    if (audio.paused) {
+        audio.play().then(() => {
+            toggleText.textContent = 'Stop Ambient Sound';
+            toggleIcon.setAttribute('data-lucide', 'volume-x');
+            window.initializeLucideIcons();
+        }).catch(e => {
+            console.warn('Audio play failed:', e);
+        });
+    } else {
+        audio.pause();
+        toggleText.textContent = 'Play Ambient Sound';
+        toggleIcon.setAttribute('data-lucide', 'volume-2');
+        window.initializeLucideIcons();
+    }
+}
+
+function stopAmbientSound() {
+    const audio = document.getElementById('ambientAudio');
+    audio.pause();
+    audio.currentTime = 0;
+    
+    const toggleText = document.getElementById('audioToggleText');
+    const toggleIcon = document.querySelector('#audioToggleText').previousElementSibling;
+    if (toggleText) {
+        toggleText.textContent = 'Play Ambient Sound';
+        toggleIcon.setAttribute('data-lucide', 'volume-2');
+        window.initializeLucideIcons();
+    }
+}
+
+function generateAmbientSound() {
+    // Generate soft ambient/white noise using Web Audio API
+    if (!window.AudioContext && !window.webkitAudioContext) {
+        console.warn('Web Audio API not supported');
+        return;
+    }
+    
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const bufferSize = audioContext.sampleRate * 2; // 2 seconds of audio
+        const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+        const data = buffer.getChannelData(0);
+        
+        // Generate soft pink noise (more pleasant than white noise)
+        let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+        for (let i = 0; i < bufferSize; i++) {
+            const white = Math.random() * 2 - 1;
+            b0 = 0.99886 * b0 + white * 0.0555179;
+            b1 = 0.99332 * b1 + white * 0.0750759;
+            b2 = 0.96900 * b2 + white * 0.1538520;
+            b3 = 0.86650 * b3 + white * 0.3104856;
+            b4 = 0.55000 * b4 + white * 0.5329522;
+            b5 = -0.7616 * b5 - white * 0.0168980;
+            const pink = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.05; // Reduce volume
+            b6 = white * 0.115926;
+            data[i] = pink;
+        }
+        
+        // Create audio source and connect
+        const source = audioContext.createBufferSource();
+        const gainNode = audioContext.createGain();
+        gainNode.gain.value = 0.15; // Low volume
+        
+        source.buffer = buffer;
+        source.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        source.loop = true;
+        
+        // Convert to blob and set as audio source
+        const audioElement = document.getElementById('ambientAudio');
+        audioContext.startRendering().then(renderedBuffer => {
+            const wav = audioBufferToWav(renderedBuffer);
+            const blob = new Blob([wav], { type: 'audio/wav' });
+            const url = URL.createObjectURL(blob);
+            audioElement.src = url;
+        });
+        
+    } catch (error) {
+        console.warn('Failed to generate ambient sound:', error);
+    }
+}
+
+function audioBufferToWav(buffer) {
+    const length = buffer.length;
+    const arrayBuffer = new ArrayBuffer(44 + length * 2);
+    const view = new DataView(arrayBuffer);
+    
+    // WAV header
+    const writeString = (offset, string) => {
+        for (let i = 0; i < string.length; i++) {
+            view.setUint8(offset + i, string.charCodeAt(i));
+        }
+    };
+    
+    writeString(0, 'RIFF');
+    view.setUint32(4, 36 + length * 2, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, buffer.sampleRate, true);
+    view.setUint32(28, buffer.sampleRate * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    writeString(36, 'data');
+    view.setUint32(40, length * 2, true);
+    
+    // Audio data
+    const samples = buffer.getChannelData(0);
+    let offset = 44;
+    for (let i = 0; i < length; i++) {
+        const sample = Math.max(-1, Math.min(1, samples[i]));
+        view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+        offset += 2;
+    }
+    
+    return arrayBuffer;
+}
+
+function copyShareText() {
+    const shareText = document.getElementById('shareText');
+    shareText.select();
+    shareText.setSelectionRange(0, 99999); // For mobile devices
+    
+    try {
+        document.execCommand('copy');
+        
+        // Show feedback
+        const btn = event.target.closest('button');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i data-lucide="check" class="me-1"></i>Copied!';
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-success');
+        
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-primary');
+            window.initializeLucideIcons();
+        }, 2000);
+        
+        window.initializeLucideIcons();
+    } catch (err) {
+        alert('Could not copy text. Please copy manually.');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    window.initializeLucideIcons();
+});
+</script>
+{% endblock %}

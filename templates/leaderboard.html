@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block title %}Top Performers - ARVLab{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb bg-light px-3 py-2 rounded">
+        <li class="breadcrumb-item">
+            <a href="/" class="text-decoration-none">
+                <i data-lucide="home" style="width: 16px; height: 16px;" class="me-1"></i>
+                Home
+            </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Top Performers</li>
+    </ol>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header Section -->
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold text-primary mb-3"><i data-lucide="trophy" style="width: 40px; height: 40px;" class="me-2"></i>Top Performers</h1>
+                <p class="lead text-muted mb-4">Celebrating ARVLab's most accurate remote viewing researchers</p>
+                
+                <!-- Stats Overview -->
+                <div class="row g-3 justify-content-center mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="card border-0 shadow-sm text-center h-100">
+                            <div class="card-body py-3">
+                                <h3 class="text-primary mb-1">{{ stats.total_active_users }}</h3>
+                                <p class="small text-muted mb-0">Active Researchers</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card border-0 shadow-sm text-center h-100">
+                            <div class="card-body py-3">
+                                <h3 class="text-success mb-1">{{ stats.total_predictions }}</h3>
+                                <p class="small text-muted mb-0">Total Predictions</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card border-0 shadow-sm text-center h-100">
+                            <div class="card-body py-3">
+                                <h3 class="text-warning mb-1">{{ stats.average_accuracy }}%</h3>
+                                <p class="small text-muted mb-0">Average Accuracy</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% if user and stats.user_rank %}
+                    <div class="col-6 col-md-3">
+                        <div class="card border-0 shadow-sm text-center h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                            <div class="card-body py-3">
+                                <h3 class="mb-1">#{{ stats.user_rank }}</h3>
+                                <p class="small opacity-90 mb-0">Your Rank</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Leaderboard Table -->
+            {% if leaderboard %}
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-light border-0 py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold" style="color: #667eea;">
+                            <i data-lucide="award" class="me-2"></i>Global Rankings
+                        </h5>
+                        <small class="text-muted">Updated in real-time</small>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th class="border-0 bg-light py-3 px-4 text-center" style="color: #667eea; font-weight: 600; width: 80px;">Rank</th>
+                                    <th class="border-0 bg-light py-3 px-4" style="color: #667eea; font-weight: 600;">Researcher</th>
+                                    <th class="border-0 bg-light py-3 px-4 text-center" style="color: #667eea; font-weight: 600;">Points</th>
+                                    <th class="border-0 bg-light py-3 px-4 text-center" style="color: #667eea; font-weight: 600;">Accuracy</th>
+                                    <th class="border-0 bg-light py-3 px-4 text-center" style="color: #667eea; font-weight: 600;">Predictions</th>
+                                    <th class="border-0 bg-light py-3 px-4 text-center" style="color: #667eea; font-weight: 600;">Skill Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for leader in leaderboard %}
+                                <tr class="leaderboard-row{% if user and leader.id == user.id %} table-primary{% endif %}"{% if user and leader.id == user.id %} style="background-color: rgba(102, 126, 234, 0.15) !important;"{% endif %}>
+                                    <td class="border-0 py-4 px-4 text-center">
+                                        {% if loop.index <= 3 %}
+                                            <div class="d-flex flex-column align-items-center">
+                                                <span style="font-size: 1.5rem; margin-bottom: 2px;">
+                                                    {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% else %}🥉{% endif %}
+                                                </span>
+                                                <small class="fw-bold" style="color: #667eea;">#{{ loop.index }}</small>
+                                            </div>
+                                        {% else %}
+                                            <span class="fw-bold" style="color: #667eea; font-size: 1.2rem;">#{{ loop.index }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="border-0 py-4 px-4">
+                                        <div class="d-flex align-items-center">
+                                            <div>
+                                                <div class="fw-bold" style="color: #667eea; font-size: 1.1rem;">u/{{ leader.name }}</div>
+                                                {% if leader.is_admin %}
+                                                    <span class="badge bg-primary text-white small mt-1">Admin</span>
+                                                {% endif %}
+                                                {% if user and leader.id == user.id %}
+                                                    <span class="badge bg-success text-white small mt-1">You</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="border-0 py-4 px-4 text-center">
+                                        <span class="fw-bold text-primary" style="font-size: 1.1rem;">{{ leader.total_points }}</span>
+                                    </td>
+                                    <td class="border-0 py-4 px-4 text-center">
+                                        <div class="d-flex flex-column align-items-center">
+                                            <span class="fw-bold {% if leader.accuracy_percentage >= 60 %}text-success{% elif leader.accuracy_percentage >= 40 %}text-warning{% else %}text-muted{% endif %}" style="font-size: 1.1rem;">
+                                                {{ "%.1f"|format(leader.accuracy_percentage) }}%
+                                            </span>
+                                            <div class="progress mt-1" style="width: 60px; height: 4px;">
+                                                <div class="progress-bar {% if leader.accuracy_percentage >= 60 %}bg-success{% elif leader.accuracy_percentage >= 40 %}bg-warning{% else %}bg-secondary{% endif %}" 
+                                                     style="width: {{ leader.accuracy_percentage }}%"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="border-0 py-4 px-4 text-center">
+                                        <div class="d-flex flex-column align-items-center">
+                                            <span class="fw-semibold text-dark">{{ leader.total_predictions }}</span>
+                                            <small class="text-success">{{ leader.correct_predictions }} correct</small>
+                                        </div>
+                                    </td>
+                                    <td class="border-0 py-4 px-4 text-center">
+                                        <span class="badge {% if leader.skill_score >= 0.3 %}bg-success{% elif leader.skill_score >= 0.1 %}bg-warning{% else %}bg-secondary{% endif %}" style="font-size: 0.9rem;">
+                                            {{ "%.3f"|format(leader.skill_score) }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Additional Information -->
+            <div class="row mt-5">
+                <div class="col-md-6">
+                    <div class="card border-0 bg-light h-100">
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold mb-3">
+                                <i data-lucide="info" class="me-2" style="color: #667eea;"></i>
+                                How Rankings Work
+                            </h5>
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2">
+                                    <i data-lucide="star" class="me-2 text-warning" style="width: 16px; height: 16px;"></i>
+                                    <strong>Points:</strong> Earned through correct predictions
+                                </li>
+                                <li class="mb-2">
+                                    <i data-lucide="target" class="me-2 text-success" style="width: 16px; height: 16px;"></i>
+                                    <strong>Accuracy:</strong> Percentage of correct predictions
+                                </li>
+                                <li class="mb-2">
+                                    <i data-lucide="trending-up" class="me-2 text-primary" style="width: 16px; height: 16px;"></i>
+                                    <strong>Skill Score:</strong> Advanced statistical measure of prediction skill
+                                </li>
+                                <li>
+                                    <i data-lucide="activity" class="me-2 text-info" style="width: 16px; height: 16px;"></i>
+                                    <strong>Minimum:</strong> Must have at least 1 prediction to appear
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card border-0 bg-light h-100">
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold mb-3">
+                                <i data-lucide="zap" class="me-2" style="color: #667eea;"></i>
+                                Start Competing
+                            </h5>
+                            {% if not user %}
+                            <p class="mb-3">Join ARVLab to start your remote viewing journey and climb the leaderboard!</p>
+                            <div class="d-grid gap-2">
+                                <a href="/register" class="btn btn-primary">
+                                    <i data-lucide="user-plus" class="me-2"></i>Create Account
+                                </a>
+                                <a href="/login" class="btn btn-outline-primary">
+                                    <i data-lucide="log-in" class="me-2"></i>Sign In
+                                </a>
+                            </div>
+                            {% else %}
+                            <p class="mb-3">Ready to improve your ranking? Participate in more prediction tasks!</p>
+                            <div class="d-grid gap-2">
+                                <a href="/trials/create" class="btn btn-primary">
+                                    <i data-lucide="plus" class="me-2"></i>Create Task
+                                </a>
+                                <a href="/trials" class="btn btn-outline-primary">
+                                    <i data-lucide="list" class="me-2"></i>Browse Tasks
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% else %}
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i data-lucide="users" style="width: 64px; height: 64px; color: #667eea;"></i>
+                </div>
+                <h4 class="text-muted">No rankings yet</h4>
+                <p class="text-muted mb-4">Be the first to make predictions and claim the top spot!</p>
+                <a href="/trials/create" class="btn btn-primary btn-lg">
+                    <i data-lucide="plus" class="me-2"></i>Create First Task
+                </a>
+            </div>
+            {% endif %}
+            
+        </div>
+    </div>
+</div>
+
+<style>
+.leaderboard-table tbody tr:hover {
+    background-color: rgba(102, 126, 234, 0.08) !important;
+}
+
+.leaderboard-row {
+    transition: all 0.2s ease;
+}
+
+.progress {
+    border-radius: 10px;
+    background-color: #e9ecef;
+}
+
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+@media (max-width: 768px) {
+    .leaderboard-table th:nth-child(4),
+    .leaderboard-table td:nth-child(4),
+    .leaderboard-table th:nth-child(6),
+    .leaderboard-table td:nth-child(6) {
+        display: none;
+    }
+}
+</style>
+{% endblock %}

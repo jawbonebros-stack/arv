@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Join Group Tasking - ARVLab{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="d-flex align-items-center mb-4">
+                <i data-lucide="users" class="me-3" style="width: 32px; height: 32px;"></i>
+                <div>
+                    <h2 class="mb-1">Join Group Taskings</h2>
+                    <p class="text-muted mb-0">Collaborate with others on shared prediction tasks - completely free!</p>
+                </div>
+            </div>
+
+            {% if available_groups %}
+            <div class="row">
+                {% for trial in available_groups %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-header bg-light border-0">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1 fw-bold">{{ trial.title }}</h6>
+                                    <small class="text-muted">
+                                        <i data-lucide="calendar" style="width: 14px; height: 14px;"></i>
+                                        {{ trial.result_time_utc.strftime('%b %d, %Y at %H:%M UTC') }}
+                                    </small>
+                                </div>
+                                <span class="badge bg-primary">{{ trial.domain.title() }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="mb-3">
+                                {% set event_spec = trial.event_spec_json | from_json %}
+                                <p class="text-muted small">{{ event_spec.description or "No description provided" }}</p>
+                            </div>
+                            
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <div class="border-end">
+                                        <div class="h6 mb-0 text-primary">{{ trial.participant_count }}</div>
+                                        <small class="text-muted">Participants</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="h6 mb-0 text-success">
+                                        {% if trial.max_participants %}
+                                            {{ trial.max_participants - trial.participant_count }} spots left
+                                        {% else %}
+                                            Unlimited
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted">Available</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer bg-transparent border-0 pt-0">
+                            <form method="POST" action="/join-trial/{{ trial.id }}" class="d-grid">
+                                <button type="submit" class="btn btn-success">
+                                    <i data-lucide="user-plus" class="me-2"></i>
+                                    Join Group (Free)
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i data-lucide="users" style="width: 64px; height: 64px; color: #6c757d;"></i>
+                </div>
+                <h4 class="text-muted">No Group Taskings Available</h4>
+                <p class="text-muted mb-4">There are currently no open group taskings you can join.</p>
+                
+                <div class="alert alert-info d-inline-block">
+                    <i data-lucide="info" class="me-2"></i>
+                    <strong>Want to start your own group?</strong><br>
+                    <small>Contact an administrator to create group taskings that others can join.</small>
+                </div>
+                
+                <div class="mt-4">
+                    <a href="/trials/create" class="btn btn-primary me-3">
+                        <i data-lucide="plus" class="me-2"></i>
+                        Create Individual Tasking
+                    </a>
+                    <a href="/trials" class="btn btn-outline-secondary">
+                        <i data-lucide="list" class="me-2"></i>
+                        View All Taskings
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+window.initializeLucideIcons();
+</script>
+{% endblock %}

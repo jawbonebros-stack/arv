@@ -1,0 +1,382 @@
+{% extends "base.html" %}
+
+{% block title %}ARV Session - {{ trial.title }} - ARVLab{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i data-lucide="eye" class="me-2 text-primary"></i>
+                    ARV Session: {{ trial.title }}
+                </h1>
+                <a href="/trials/{{ trial.id }}" class="btn btn-outline-secondary">
+                    <i data-lucide="arrow-left" class="me-2"></i>Back to Trial
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Current Ball Display -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i data-lucide="target" class="me-2"></i>
+                            Ball <span id="current-ball-number">1</span> of {{ outcomes|length }}
+                        </h5>
+                        <div class="d-flex gap-2">
+                            {% for outcome in outcomes %}
+                            <button class="btn btn-sm btn-outline-light ball-nav-btn" 
+                                    data-ball="{{ loop.index }}" onclick="showBall({{ loop.index }})">
+                                {{ loop.index }}
+                            </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <i data-lucide="info" class="me-2"></i>
+                        <strong>Remote Viewing Focus:</strong> Direct your attention to Ball <span id="ball-focus-number">1</span>. Record raw sensory impressions without analysis.
+                    </div>
+                    
+
+                </div>
+            </div>
+
+            <!-- Descriptor Form -->
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i data-lucide="edit-3" class="me-2"></i>
+                        Sensory Impressions for Ball <span id="form-ball-number">1</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="descriptor-form">
+                        <input type="hidden" id="current-outcome-id" value="{{ outcomes[0].id if outcomes else '' }}">
+                        
+                        <div class="row">
+                            <!-- Colors -->
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-secondary">
+                                    <div class="card-header bg-light border-bottom">
+                                        <h6 class="mb-0 text-dark"><i data-lucide="palette" class="me-2"></i>Colors</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <textarea class="form-control" name="colours" rows="2" 
+                                                  placeholder="Red, blue, bright, golden..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tactile -->
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-secondary">
+                                    <div class="card-header bg-light border-bottom">
+                                        <h6 class="mb-0 text-dark"><i data-lucide="hand" class="me-2"></i>Tactile</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <textarea class="form-control" name="tactile" rows="2" 
+                                                  placeholder="Smooth, rough, warm, cold..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Energy -->
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-secondary">
+                                    <div class="card-header bg-light border-bottom">
+                                        <h6 class="mb-0 text-dark"><i data-lucide="zap" class="me-2"></i>Energy</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <textarea class="form-control" name="energy" rows="2" 
+                                                  placeholder="Static, moving, vibrating..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Smell -->
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-secondary">
+                                    <div class="card-header bg-light border-bottom">
+                                        <h6 class="mb-0 text-dark"><i data-lucide="wind" class="me-2"></i>Smell</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <textarea class="form-control" name="smell" rows="2" 
+                                                  placeholder="Fresh, musty, floral..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sound -->
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-secondary">
+                                    <div class="card-header bg-light border-bottom">
+                                        <h6 class="mb-0 text-dark"><i data-lucide="volume-2" class="me-2"></i>Sound</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <textarea class="form-control" name="sound" rows="2" 
+                                                  placeholder="Loud, quiet, musical..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Visual -->
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-secondary">
+                                    <div class="card-header bg-light border-bottom">
+                                        <h6 class="mb-0 text-dark"><i data-lucide="eye" class="me-2"></i>Visual</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <textarea class="form-control" name="visual" rows="2" 
+                                                  placeholder="Round, angular, patterns..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                            <button type="button" class="btn btn-outline-secondary" onclick="previousBall()">
+                                <i data-lucide="arrow-left" class="me-2"></i>Previous Ball
+                            </button>
+                            
+                            <button type="button" class="btn btn-success" onclick="saveDescriptors()">
+                                <i data-lucide="save" class="me-2"></i>Save Ball
+                            </button>
+                            
+                            <button type="button" class="btn btn-primary" onclick="nextBall()">
+                                Next Ball<i data-lucide="arrow-right" class="ms-2"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container" class="position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
+
+<style>
+.ball-nav-btn {
+    border-radius: 50% !important;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.ball-nav-btn.active {
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+    color: white !important;
+}
+
+.card {
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-1px);
+}
+
+.toast {
+    min-width: 300px;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentBall = 1;
+const totalBalls = {{ outcomes|length }};
+const trialId = {{ trial.id }};
+const ballData = {};
+
+// Outcomes data for ball switching
+const outcomes = [
+    {% for outcome in outcomes %}
+    { id: {{ outcome.id }}, label: "{{ outcome.label }}" }{% if not loop.last %},{% endif %}
+    {% endfor %}
+];
+
+// Initialize ball data
+for (let i = 1; i <= totalBalls; i++) {
+    ballData[i] = {
+        colours: '',
+        tactile: '',
+        energy: '',
+        smell: '',
+        sound: '',
+        visual: '',
+        saved: false
+    };
+}
+
+function showBall(ballNumber) {
+    ballNumber = parseInt(ballNumber);
+    if (ballNumber < 1 || ballNumber > totalBalls) return;
+    
+    // Save current ball data
+    saveBallDataToMemory(currentBall);
+    
+    // Update current ball
+    currentBall = ballNumber;
+    
+    // Update UI
+    document.getElementById('current-ball-number').textContent = ballNumber;
+    document.getElementById('ball-focus-number').textContent = ballNumber;
+    document.getElementById('form-ball-number').textContent = ballNumber;
+
+    document.getElementById('current-outcome-id').value = outcomes[ballNumber - 1].id;
+    
+    // Update navigation buttons
+    document.querySelectorAll('.ball-nav-btn').forEach(btn => {
+        if (parseInt(btn.dataset.ball) === ballNumber) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    // Load ball data into form
+    loadBallDataFromMemory(ballNumber);
+}
+
+function saveBallDataToMemory(ballNumber) {
+    const form = document.getElementById('descriptor-form');
+    const formData = new FormData(form);
+    
+    ballData[ballNumber] = {
+        colours: formData.get('colours') || '',
+        tactile: formData.get('tactile') || '',
+        energy: formData.get('energy') || '',
+        smell: formData.get('smell') || '',
+        sound: formData.get('sound') || '',
+        visual: formData.get('visual') || '',
+        saved: ballData[ballNumber].saved
+    };
+}
+
+function loadBallDataFromMemory(ballNumber) {
+    const data = ballData[ballNumber];
+    const form = document.getElementById('descriptor-form');
+    
+    form.querySelector('[name="colours"]').value = data.colours;
+    form.querySelector('[name="tactile"]').value = data.tactile;
+    form.querySelector('[name="energy"]').value = data.energy;
+    form.querySelector('[name="smell"]').value = data.smell;
+    form.querySelector('[name="sound"]').value = data.sound;
+    form.querySelector('[name="visual"]').value = data.visual;
+}
+
+function nextBall() {
+    if (currentBall < totalBalls) {
+        showBall(currentBall + 1);
+    }
+}
+
+function previousBall() {
+    if (currentBall > 1) {
+        showBall(currentBall - 1);
+    }
+}
+
+function saveDescriptors() {
+    saveBallDataToMemory(currentBall);
+    
+    const formData = new FormData();
+    const data = ballData[currentBall];
+    
+    // Add form data
+    Object.keys(data).forEach(key => {
+        if (key !== 'saved') {
+            formData.append(key, data[key]);
+        }
+    });
+    
+    formData.append('trial_id', trialId);
+    formData.append('outcome_id', outcomes[currentBall - 1].id);
+    
+    // Show saving state
+    const saveBtn = document.querySelector('[onclick="saveDescriptors()"]');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+    saveBtn.disabled = true;
+    
+    // Submit to server
+    fetch('/api/descriptors/submit', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            ballData[currentBall].saved = true;
+            showToast(`Ball ${currentBall} descriptors saved successfully!`, 'success');
+            
+            // Update nav button to show saved
+            const navBtn = document.querySelector(`[data-ball="${currentBall}"]`);
+            navBtn.innerHTML = `${currentBall} ✓`;
+            
+            // Auto-advance if not last ball
+            if (currentBall < totalBalls) {
+                setTimeout(() => nextBall(), 1000);
+            }
+        } else {
+            showToast(`Error saving Ball ${currentBall}: ${result.error || 'Unknown error'}`, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast(`Network error saving Ball ${currentBall}`, 'error');
+    })
+    .finally(() => {
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+    });
+}
+
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast show align-items-center text-bg-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'primary'} border-0`;
+    toast.setAttribute('role', 'alert');
+    
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <i data-lucide="${type === 'success' ? 'check' : type === 'error' ? 'x' : 'info'}" class="me-2"></i>
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.closest('.toast').remove()"></button>
+        </div>
+    `;
+    
+    container.appendChild(toast);
+    window.initializeLucideIcons();
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.remove();
+        }
+    }, 5000);
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    showBall(1);
+});
+</script>
+{% endblock %}
