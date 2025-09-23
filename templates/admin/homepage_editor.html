@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Homepage Editor - ARVLab Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i data-lucide="edit-3"></i> Homepage Content Editor</h2>
+                <a href="/admin" class="btn btn-outline-secondary">
+                    <i data-lucide="arrow-left"></i> Back to Admin
+                </a>
+            </div>
+
+            {% if request.query_params.get('updated') == 'success' %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i data-lucide="check-circle"></i>
+                Homepage content updated successfully!
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endif %}
+
+            {% if request.query_params.get('error') %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i data-lucide="alert-triangle"></i>
+                Error: {{ request.query_params.get('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endif %}
+
+            <div class="row">
+                <!-- Hero Section -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i data-lucide="star"></i> Hero Section</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if content.hero %}
+                            {% for key, item in content.hero.items() %}
+                            <form action="/admin/homepage/update" method="post" class="mb-3">
+                                <input type="hidden" name="section" value="hero">
+                                <input type="hidden" name="key" value="{{ key }}">
+                                
+                                <label class="form-label fw-bold text-capitalize">{{ key.replace('_', ' ') }}</label>
+                                {% if key in ['testimonial_text', 'subtitle'] %}
+                                <textarea name="content_value" class="form-control" rows="3" required>{{ item.value }}</textarea>
+                                {% else %}
+                                <input type="text" name="content_value" class="form-control" value="{{ item.value }}" required>
+                                {% endif %}
+                                
+                                <button type="submit" class="btn btn-primary btn-sm mt-2">
+                                    <i data-lucide="save"></i> Update
+                                </button>
+                            </form>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Benefits Section -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i data-lucide="heart"></i> Benefits Section</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if content.benefits %}
+                            {% for key, item in content.benefits.items() %}
+                            <form action="/admin/homepage/update" method="post" class="mb-3">
+                                <input type="hidden" name="section" value="benefits">
+                                <input type="hidden" name="key" value="{{ key }}">
+                                
+                                <label class="form-label fw-bold text-capitalize">{{ key.replace('_', ' ') }}</label>
+                                <input type="text" name="content_value" class="form-control" value="{{ item.value }}" required>
+                                
+                                <button type="submit" class="btn btn-primary btn-sm mt-2">
+                                    <i data-lucide="save"></i> Update
+                                </button>
+                            </form>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Earning Section -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i data-lucide="dollar-sign"></i> Earning Section</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if content.earning %}
+                            {% for key, item in content.earning.items() %}
+                            <form action="/admin/homepage/update" method="post" class="mb-3">
+                                <input type="hidden" name="section" value="earning">
+                                <input type="hidden" name="key" value="{{ key }}">
+                                
+                                <label class="form-label fw-bold text-capitalize">{{ key.replace('_', ' ') }}</label>
+                                {% if key == 'subtitle' %}
+                                <textarea name="content_value" class="form-control" rows="3" required>{{ item.value }}</textarea>
+                                {% else %}
+                                <input type="text" name="content_value" class="form-control" value="{{ item.value }}" required>
+                                {% endif %}
+                                
+                                <button type="submit" class="btn btn-primary btn-sm mt-2">
+                                    <i data-lucide="save"></i> Update
+                                </button>
+                            </form>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leaderboard Section -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i data-lucide="trophy"></i> Leaderboard Section</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if content.leaderboard %}
+                            {% for key, item in content.leaderboard.items() %}
+                            <form action="/admin/homepage/update" method="post" class="mb-3">
+                                <input type="hidden" name="section" value="leaderboard">
+                                <input type="hidden" name="key" value="{{ key }}">
+                                
+                                <label class="form-label fw-bold text-capitalize">{{ key.replace('_', ' ') }}</label>
+                                <input type="text" name="content_value" class="form-control" value="{{ item.value }}" required>
+                                
+                                <button type="submit" class="btn btn-primary btn-sm mt-2">
+                                    <i data-lucide="save"></i> Update
+                                </button>
+                            </form>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add New Content Section -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5><i data-lucide="plus-circle"></i> Add New Content</h5>
+                </div>
+                <div class="card-body">
+                    <form action="/admin/homepage/update" method="post">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="form-label">Section</label>
+                                <select name="section" class="form-select" required>
+                                    <option value="">Choose section...</option>
+                                    <option value="hero">Hero</option>
+                                    <option value="benefits">Benefits</option>
+                                    <option value="earning">Earning</option>
+                                    <option value="leaderboard">Leaderboard</option>
+                                    <option value="cta">Call to Action</option>
+                                    <option value="features">Features</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Key</label>
+                                <input type="text" name="key" class="form-control" placeholder="e.g., title, subtitle" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Content</label>
+                                <input type="text" name="content_value" class="form-control" placeholder="Enter content..." required>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="submit" class="btn btn-success d-block">
+                                    <i data-lucide="plus"></i> Add
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5><i data-lucide="eye"></i> Preview</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        <i data-lucide="info"></i>
+                        Changes are applied immediately. Visit the <a href="/" target="_blank">homepage</a> to see your updates.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

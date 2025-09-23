@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+
+{% block title %}Notification Settings - Admin - ARVLab{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="/admin" class="text-decoration-none">
+        <i data-lucide="shield" style="width: 16px; height: 16px;" class="me-1"></i>
+        Admin
+    </a>
+</li>
+<li class="breadcrumb-item active" aria-current="page">
+    <i data-lucide="bell" style="width: 16px; height: 16px;" class="me-1"></i>
+    Notification Settings
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-2">
+                        <i data-lucide="bell"></i> Notification Management
+                    </h1>
+                    <p class="text-muted mb-0">Configure platform-wide notification settings and view delivery statistics</p>
+                </div>
+                <div class="btn-group" role="group">
+                    <a href="/admin" class="btn btn-outline-secondary">
+                        <i data-lucide="arrow-left" class="me-1" style="width: 16px; height: 16px;"></i>
+                        Back to Admin
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Messages -->
+    {% if request.query_params.get('updated') == 'success' %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i data-lucide="check-circle" class="me-2" style="width: 16px; height: 16px;"></i>
+        Notification settings updated successfully!
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    {% if request.query_params.get('error') %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i data-lucide="alert-triangle" class="me-2" style="width: 16px; height: 16px;"></i>
+        Error: {{ request.query_params.get('error') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <!-- Notification Statistics -->
+    {% if notification_stats %}
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stats-card text-center h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="stats-icon-wrapper mb-3">
+                        <i data-lucide="mail" class="stats-icon text-secondary"></i>
+                    </div>
+                    <h2 class="fw-bold text-dark mb-2">{{ notification_stats.total_sent }}</h2>
+                    <h6 class="text-muted mb-0">Total Sent</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card text-center h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="stats-icon-wrapper mb-3">
+                        <i data-lucide="x-circle" class="stats-icon text-danger"></i>
+                    </div>
+                    <h2 class="fw-bold text-danger mb-2">{{ notification_stats.total_failed }}</h2>
+                    <h6 class="text-muted mb-0">Failed</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card text-center h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="stats-icon-wrapper mb-3">
+                        <i data-lucide="trending-up" class="stats-icon text-secondary"></i>
+                    </div>
+                    <h2 class="fw-bold text-dark mb-2">{{ notification_stats.success_rate }}%</h2>
+                    <h6 class="text-muted mb-0">Success Rate</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card text-center h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="stats-icon-wrapper mb-3">
+                        <i data-lucide="clock" class="stats-icon text-info"></i>
+                    </div>
+                    <h2 class="fw-bold text-dark mb-2">{{ notification_stats.recent_count }}</h2>
+                    <h6 class="text-muted mb-0">Recent (24h)</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Settings Configuration -->
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pb-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i data-lucide="settings" class="me-2"></i>Notification Settings
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Email Notifications Toggle -->
+                    <div class="settings-item mb-4 p-3 bg-light rounded-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="fw-semibold text-dark mb-2">Email Notifications</h6>
+                                <p class="text-muted mb-0 small">Send email notifications when tasks are concluded</p>
+                            </div>
+                            <form method="post" action="/admin/notifications/update" class="d-inline">
+                                <input type="hidden" name="setting_key" value="email_notifications_enabled">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="setting_value" value="true" 
+                                           id="emailNotifications" {% if settings.get('email_notifications_enabled', True) %}checked{% endif %}
+                                           onchange="this.form.submit()">
+                                    <input type="hidden" name="setting_value" value="false">
+                                    <label class="form-check-label" for="emailNotifications">
+                                        {{ "Enabled" if settings.get('email_notifications_enabled', True) else "Disabled" }}
+                                    </label>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Activity Feed Toggle -->
+                    <div class="settings-item mb-4 p-3 bg-light rounded-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="fw-semibold text-dark mb-2">Activity Feed</h6>
+                                <p class="text-muted mb-0 small">Show activity feed on user dashboards</p>
+                            </div>
+                            <form method="post" action="/admin/notifications/update" class="d-inline">
+                                <input type="hidden" name="setting_key" value="activity_feed_enabled">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="setting_value" value="true"
+                                           id="activityFeed" {% if settings.get('activity_feed_enabled', True) %}checked{% endif %}
+                                           onchange="this.form.submit()">
+                                    <input type="hidden" name="setting_value" value="false">
+                                    <label class="form-check-label" for="activityFeed">
+                                        {{ "Enabled" if settings.get('activity_feed_enabled', True) else "Disabled" }}
+                                    </label>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- New Results Badges Toggle -->
+                    <div class="settings-item mb-4 p-3 bg-light rounded-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="fw-semibold text-dark mb-2">New Results Badges</h6>
+                                <p class="text-muted mb-0 small">Show "New" badges on dashboard for unseen task results</p>
+                            </div>
+                            <form method="post" action="/admin/notifications/update" class="d-inline">
+                                <input type="hidden" name="setting_key" value="new_results_badges_enabled">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="setting_value" value="true"
+                                           id="newResultsBadges" {% if settings.get('new_results_badges_enabled', True) %}checked{% endif %}
+                                           onchange="this.form.submit()">
+                                    <input type="hidden" name="setting_value" value="false">
+                                    <label class="form-check-label" for="newResultsBadges">
+                                        {{ "Enabled" if settings.get('new_results_badges_enabled', True) else "Disabled" }}
+                                    </label>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Email Sender Name -->
+                    <div class="settings-item mb-4 p-3 bg-light rounded-3">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="fw-semibold text-dark mb-2">Email Sender Name</h6>
+                                <p class="text-muted mb-0 small">Name shown as sender in notification emails</p>
+                            </div>
+                            <div class="col-md-6">
+                                <form method="post" action="/admin/notifications/update" class="d-flex">
+                                    <input type="hidden" name="setting_key" value="email_sender_name">
+                                    <input type="text" class="form-control me-2" name="setting_value" 
+                                           value="{{ settings.get('email_sender_name', 'ARVLab Platform') }}" 
+                                           placeholder="Sender name">
+                                    <button type="submit" class="btn btn-secondary btn-sm">
+                                        <i data-lucide="save" style="width: 14px; height: 14px;"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notification Delay -->
+                    <div class="settings-item mb-4 p-3 bg-light rounded-3">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="fw-semibold text-dark mb-2">Notification Delay</h6>
+                                <p class="text-muted mb-0 small">Minutes to wait before sending notifications (for batching)</p>
+                            </div>
+                            <div class="col-md-6">
+                                <form method="post" action="/admin/notifications/update" class="d-flex">
+                                    <input type="hidden" name="setting_key" value="notification_delay_minutes">
+                                    <input type="number" class="form-control me-2" name="setting_value" 
+                                           value="{{ settings.get('notification_delay_minutes', 5) }}" 
+                                           min="0" max="60" placeholder="Minutes">
+                                    <button type="submit" class="btn btn-secondary btn-sm">
+                                        <i data-lucide="save" style="width: 14px; height: 14px;"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Recent Notifications Log -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pb-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i data-lucide="list" class="me-2"></i>Recent Notifications
+                    </h5>
+                </div>
+                <div class="card-body p-0" style="max-height: 400px; overflow-y: auto;">
+                    {% if recent_notifications %}
+                        {% for notification in recent_notifications %}
+                        <div class="notification-item p-3 {% if not loop.last %}border-bottom{% endif %}">
+                            <div class="d-flex align-items-start">
+                                <div class="notification-icon me-3 {% if notification.status == 'sent' %}text-secondary{% else %}text-danger{% endif %}">
+                                    <i data-lucide="{% if notification.status == 'sent' %}check-circle{% else %}x-circle{% endif %}" 
+                                       style="width: 16px; height: 16px;"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-medium text-dark mb-1">
+                                        {{ notification.notification_type.replace('_', ' ').title() }}
+                                    </div>
+                                    <div class="small text-muted mb-1">
+                                        Trial #{{ notification.trial_id }} - User #{{ notification.user_id }}
+                                    </div>
+                                    <small class="text-muted">{{ notification.sent_at.strftime('%b %d, %H:%M') }}</small>
+                                </div>
+                                <span class="badge bg-{% if notification.status == 'sent' %}secondary{% else %}danger{% endif %}">
+                                    {{ notification.status.title() }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="text-center py-5">
+                        <div class="empty-state-icon mb-3">
+                            <i data-lucide="bell-off" class="text-muted" style="width: 48px; height: 48px;"></i>
+                        </div>
+                        <h6 class="text-muted fw-semibold">No notifications yet</h6>
+                        <p class="text-muted mb-0 small">Notification logs will appear here once users receive notifications</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.stats-card .stats-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    background: rgba(37, 99, 235, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.stats-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.settings-item {
+    transition: background-color 0.2s ease;
+}
+
+.settings-item:hover {
+    background-color: rgba(37, 99, 235, 0.05) !important;
+}
+
+.form-check-input:checked {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+.notification-item {
+    transition: background-color 0.2s ease;
+}
+
+.notification-item:hover {
+    background-color: rgba(37, 99, 235, 0.02);
+}
+</style>
+
+<script>
+// Auto-refresh notification stats every 30 seconds
+setInterval(function() {
+    // Only refresh if user is still on the page
+    if (document.visibilityState === 'visible') {
+        window.location.reload();
+    }
+}, 30000);
+
+// Initialize Lucide icons after any dynamic content
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.safeFeatherReplace) {
+        window.safeFeatherReplace();
+    }
+});
+</script>
+{% endblock %}

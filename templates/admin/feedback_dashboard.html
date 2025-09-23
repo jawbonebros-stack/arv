@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block title %}Feedback Dashboard - ARVLab{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i data-lucide="message-circle"></i> User Feedback Dashboard</h2>
+                <div class="btn-group">
+                    <button class="btn btn-outline-secondary" onclick="filterFeedback('all')">All</button>
+                    <button class="btn btn-outline-secondary" onclick="filterFeedback('trial_creation')">Trial Creation</button>
+                    <button class="btn btn-outline-secondary" onclick="filterFeedback('arv_session')">ARV Sessions</button>
+                    <button class="btn btn-outline-secondary" onclick="filterFeedback('trial_detail')">Trial Management</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="text-primary">{{ feedback_stats.total_feedback }}</h3>
+                    <p class="text-muted mb-0">Total Feedback</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="text-success">{{ "%.1f"|format(feedback_stats.avg_overall_rating) }}</h3>
+                    <p class="text-muted mb-0">Avg Overall Rating</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="text-info">{{ "%.1f"|format(feedback_stats.avg_ease_rating) }}</h3>
+                    <p class="text-muted mb-0">Avg Ease Rating</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="text-warning">{{ feedback_stats.recent_count }}</h3>
+                    <p class="text-muted mb-0">This Week</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback List -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i data-lucide="list"></i> Recent Feedback</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Workflow</th>
+                            <th>User</th>
+                            <th>Overall</th>
+                            <th>Ease</th>
+                            <th>Feedback</th>
+                            <th>Issues</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="feedbackTableBody">
+                        {% for feedback in recent_feedback %}
+                        <tr data-workflow="{{ feedback.workflow }}">
+                            <td>
+                                <small class="text-muted">
+                                    {{ feedback.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                </small>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ feedback.workflow }}</span>
+                                {% if feedback.context %}
+                                <br><small class="text-muted">{{ feedback.context }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if feedback.user_id %}
+                                    <i data-lucide="user"></i> User {{ feedback.user_id }}
+                                {% else %}
+                                    <i data-lucide="user-x"></i> Anonymous
+                                {% endif %}
+                                {% if feedback.contact_ok %}
+                                    <i data-lucide="mail" class="text-success" title="Open to contact"></i>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if feedback.overall_rating %}
+                                <div class="rating-display">
+                                    {% for i in range(1, 6) %}
+                                        {% if i <= feedback.overall_rating %}
+                                            <i data-lucide="star" class="star-filled"></i>
+                                        {% else %}
+                                            <i data-lucide="star" class="star-empty"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if feedback.ease_rating %}
+                                <div class="rating-display">
+                                    {% for i in range(1, 6) %}
+                                        {% if i <= feedback.ease_rating %}
+                                            <i data-lucide="star" class="star-filled"></i>
+                                        {% else %}
+                                            <i data-lucide="star" class="star-empty"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if feedback.feedback_text %}
+                                <div class="feedback-preview">
+                                    {{ feedback.feedback_text[:100] }}{% if feedback.feedback_text|length > 100 %}...{% endif %}
+                                </div>
+                                {% endif %}
+                                {% if feedback.suggestions %}
+                                <div class="text-info small mt-1">
+                                    <i data-lucide="lightbulb"></i> Has suggestions
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if feedback.issues and feedback.issues != "[]" %}
+                                    {% set issues_list = feedback.issues|from_json %}
+                                    {% for issue in issues_list %}
+                                        <span class="badge bg-warning text-dark me-1">{{ issue.replace('_', ' ').title() }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="text-muted">None</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" onclick="viewFeedbackDetail({{ feedback.id }})">
+                                    <i data-lucide="eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feedback Detail Modal -->
+<div class="modal fade" id="feedbackDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Feedback Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="feedbackDetailContent">
+                <!-- Details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.rating-display {
+    display: flex;
+    gap: 2px;
+}
+
+.rating-display .star-filled {
+    color: #ffc107;
+    width: 16px;
+    height: 16px;
+}
+
+.rating-display .star-empty {
+    color: #dee2e6;
+    width: 16px;
+    height: 16px;
+}
+
+.feedback-preview {
+    max-width: 300px;
+    word-wrap: break-word;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+</style>
+
+<script>
+function filterFeedback(workflow) {
+    const rows = document.querySelectorAll('#feedbackTableBody tr');
+    
+    rows.forEach(row => {
+        if (workflow === 'all' || row.dataset.workflow === workflow) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    // Update button states
+    document.querySelectorAll('.btn-group .btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+}
+
+function viewFeedbackDetail(feedbackId) {
+    fetch(`/admin/feedback/${feedbackId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const feedback = data.feedback;
+                const content = document.getElementById('feedbackDetailContent');
+                
+                content.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Workflow Information</h6>
+                            <p><strong>Workflow:</strong> ${feedback.workflow}</p>
+                            <p><strong>Context:</strong> ${feedback.context || 'N/A'}</p>
+                            <p><strong>Date:</strong> ${new Date(feedback.created_at).toLocaleString()}</p>
+                            <p><strong>Page URL:</strong> <a href="${feedback.page_url}" target="_blank">${feedback.page_url}</a></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Ratings</h6>
+                            <p><strong>Overall Experience:</strong> ${feedback.overall_rating ? feedback.overall_rating + '/5 stars' : 'Not rated'}</p>
+                            <p><strong>Ease of Use:</strong> ${feedback.ease_rating ? feedback.ease_rating + '/5 stars' : 'Not rated'}</p>
+                            <p><strong>Contact Permission:</strong> ${feedback.contact_ok ? 'Yes' : 'No'}</p>
+                        </div>
+                    </div>
+                    
+                    ${feedback.feedback_text ? `
+                    <hr>
+                    <h6>Feedback Text</h6>
+                    <div class="alert alert-light">${feedback.feedback_text}</div>
+                    ` : ''}
+                    
+                    ${feedback.suggestions ? `
+                    <hr>
+                    <h6>Suggestions</h6>
+                    <div class="alert alert-info">${feedback.suggestions}</div>
+                    ` : ''}
+                    
+                    ${feedback.issues && feedback.issues !== '[]' ? `
+                    <hr>
+                    <h6>Reported Issues</h6>
+                    <div>
+                        ${JSON.parse(feedback.issues).map(issue => 
+                            `<span class="badge bg-warning text-dark me-2">${issue.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>`
+                        ).join('')}
+                    </div>
+                    ` : ''}
+                `;
+                
+                new bootstrap.Modal(document.getElementById('feedbackDetailModal')).show();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading feedback details:', error);
+            alert('Error loading feedback details');
+        });
+}
+
+// Initialize with all feedback showing
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelector('.btn-group .btn').classList.add('active');
+    if (typeof window.initializeLucideIcons === 'function') {
+        window.initializeLucideIcons();
+    }
+});
+</script>
+{% endblock %}
