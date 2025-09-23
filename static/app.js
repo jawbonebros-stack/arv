@@ -1,0 +1,890 @@
+/**
+ * ARVLab Frontend JavaScript
+ * Clean, organized codebase for the ARV prediction platform
+ */
+
+// ============================================================================
+// ICON MANAGEMENT
+// ============================================================================
+
+class IconManager {
+    static initialize() {
+        try {
+            if (typeof lucide === 'undefined') {
+                setTimeout(() => IconManager.initialize(), 100);
+                return;
+            }
+            
+            lucide.createIcons();
+            console.log('Icons initialized successfully');
+        } catch (error) {
+            console.warn('Icon initialization failed:', error);
+            IconManager.addFallbackIcons();
+        }
+    }
+    
+    static addFallbackIcons() {
+        document.querySelectorAll('[data-lucide]').forEach(icon => {
+            if (!icon.innerHTML.trim()) {
+                icon.innerHTML = '•';
+                icon.style.fontSize = '12px';
+                icon.style.color = '#6c757d';
+            }
+        });
+    }
+    
+    static refresh() {
+        try {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        } catch (error) {
+            console.warn('Icon refresh failed:', error);
+        }
+    }
+}
+
+// ============================================================================
+// ADMIN UTILITY FUNCTIONS
+// ============================================================================
+
+/**
+ * Get display-friendly category names
+ */
+function getCategoryDisplayName(category) {
+    const displayNames = {
+        'Colors': 'Colors',
+        'Tactile': 'Touch',
+        'Energy': 'Energy',
+        'Smell': 'Smell',
+        'Sound': 'Sound',
+        'Visual': 'Visual'
+    };
+    return displayNames[category] || category;
+}
+
+/**
+ * Get color for category progress bars
+ */
+function getCategoryColor(category) {
+    const categoryColors = {
+        'Colors': '#dc2626',    // Red
+        'Tactile': '#059669',   // Green  
+        'Energy': '#7c3aed',    // Purple
+        'Smell': '#0891b2',     // Cyan
+        'Sound': '#ea580c',     // Orange
+        'Visual': '#4f46e5'     // Indigo
+    };
+    return categoryColors[category] || '#6b7280';  // Default gray
+}
+
+/**
+ * Reveal target image for admin users
+ * Called when admin clicks "Click to Reveal" on protected target images
+ */
+function revealTargetImageAdmin(element) {
+    try {
+        // Find the hidden image and protection overlay
+        const hiddenImage = element.querySelector('.hidden-target-image');
+        const protectionOverlay = element.querySelector('.protection-overlay');
+        
+        if (hiddenImage && protectionOverlay) {
+            // Show the actual target image
+            hiddenImage.style.opacity = '1';
+            hiddenImage.style.visibility = 'visible';
+            hiddenImage.style.position = 'static';
+            
+            // Hide the protection overlay
+            protectionOverlay.style.display = 'none';
+            
+            // Add a class to indicate it's revealed
+            element.classList.add('revealed');
+            
+            // Add a subtle border to indicate it's been revealed
+            element.style.border = '2px solid rgba(34, 197, 94, 0.3)';
+            
+            console.log('Target image revealed for admin');
+        } else {
+            console.error('Could not find hidden image or protection overlay');
+        }
+    } catch (error) {
+        console.error('Error revealing target image:', error);
+        // Fallback: at least hide the overlay
+        const protectionOverlay = element.querySelector('.protection-overlay');
+        if (protectionOverlay) {
+            protectionOverlay.style.display = 'none';
+        }
+    }
+}
+
+// ============================================================================
+// WEBSOCKET MANAGER
+// ============================================================================
+
+class WebSocketManager {
+    constructor(app) {
+        this.app = app;
+        this.connections = new Map();
+    }
+    
+    connect(trialId) {
+        if (this.connections.has(trialId)) return;
+        
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws/trial/${trialId}`;
+        
+        const ws = new WebSocket(wsUrl);
+        this.connections.set(trialId, ws);
+        
+        ws.onopen = () => {
+            console.log(`Connected to task ${trialId}`);
+            this.updateStatus('connected');
+        };
+        
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                this.handleMessage(data);
+            } catch (error) {
+                console.error('WebSocket message error:', error);
+            }
+        };
+        
+        ws.onclose = () => {
+            console.log(`Disconnected from task ${trialId}`);
+            this.updateStatus('disconnected');
+            this.connections.delete(trialId);
+            setTimeout(() => this.connect(trialId), 3000);
+        };
+        
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            this.updateStatus('error');
+        };
+    }
+    
+    handleMessage(data) {
+        switch (data.type) {
+            case 'descriptor_added':
+                this.app.descriptors.addToUI(data.descriptor);
+                break;
+            case 'descriptor_voted':
+                this.app.descriptors.updateVotes(data.descriptorId, data.upvotes, data.downvotes);
+                break;
+            case 'trial_status_changed':
+                this.app.updateTrialStatus(data.status);
+                break;
+            default:
+                console.log('Unknown WebSocket message:', data.type);
+        }
+    }
+    
+    updateStatus(status) {
+        const statusEl = document.getElementById('wsStatus');
+        if (!statusEl) return;
+        
+        const configs = {
+            connected: { class: 'badge bg-success', text: 'Connected' },
+            disconnected: { class: 'badge bg-danger', text: 'Disconnected' },
+            connecting: { class: 'badge bg-warning', text: 'Connecting...' },
+            error: { class: 'badge bg-danger', text: 'Error' }
+        };
+        
+        const config = configs[status] || configs.error;
+        statusEl.className = config.class;
+        statusEl.textContent = config.text;
+    }
+}
+
+// ============================================================================
+// DESCRIPTOR SYSTEM
+// ============================================================================
+
+class DescriptorManager {
+    constructor(app) {
+        this.app = app;
+        this.categories = {
+            colours: { name: 'Colours', icon: 'droplet', color: 'primary' },
+            tactile: { name: 'Tactile', icon: 'hand', color: 'success' },
+            energy: { name: 'Energy', icon: 'zap', color: 'warning' },
+            smell: { name: 'Smell', icon: 'wind', color: 'info' },
+            sound: { name: 'Sound', icon: 'volume-2', color: 'danger' },
+            visual: { name: 'Visual', icon: 'eye', color: 'dark' },
+            general: { name: 'General', icon: 'tag', color: 'secondary' }
+        };
+        this.autoSaveTimeout = null;
+        this.lastActiveTab = 'all';
+    }
+    
+    getCategoryInfo(category) {
+        return this.categories[category] || this.categories.general;
+    }
+    
+    addToUI(descriptor) {
+        const container = document.getElementById('descriptorsContainer');
+        if (!container) return;
+        
+        // Remove "no descriptors" message
+        const noMsg = container.querySelector('.text-center');
+        if (noMsg && noMsg.textContent.includes('No descriptors yet')) {
+            noMsg.remove();
+        }
+        
+        const category = descriptor.category || 'general';
+        const categoryInfo = this.getCategoryInfo(category);
+        
+        const descriptorElement = this.createDescriptorElement(descriptor, category, categoryInfo);
+        container.insertAdjacentHTML('beforeend', descriptorElement);
+        
+        IconManager.refresh();
+        this.app.showNotification(`New ${categoryInfo.name.toLowerCase()} descriptor added`, 'success');
+    }
+    
+    createDescriptorElement(descriptor, category, categoryInfo) {
+        return `
+            <div class="descriptor-item border rounded mb-2 p-3 fade-in" data-descriptor-id="${descriptor.id}" data-category="${category}">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <div class="mb-2">
+                            <span class="badge badge-category bg-${categoryInfo.color}">
+                                <i data-lucide="${categoryInfo.icon}"></i>
+                                ${categoryInfo.name}
+                            </span>
+                        </div>
+                        <p class="mb-1 descriptor-text">${this.app.escapeHtml(descriptor.text)}</p>
+                        <small class="text-muted">by ${this.app.escapeHtml(descriptor.author || 'Anonymous')}</small>
+                    </div>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-success" onclick="app.voteDescriptor(${descriptor.id}, 'up')">
+                            <i data-lucide="thumbs-up"></i> ${descriptor.upvotes || 0}
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="app.voteDescriptor(${descriptor.id}, 'down')">
+                            <i data-lucide="thumbs-down"></i> ${descriptor.downvotes || 0}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    updateVotes(descriptorId, upvotes, downvotes) {
+        const element = document.querySelector(`[data-descriptor-id="${descriptorId}"]`);
+        if (!element) return;
+        
+        const upBtn = element.querySelector('.btn-outline-success');
+        const downBtn = element.querySelector('.btn-outline-danger');
+        
+        if (upBtn) {
+            upBtn.innerHTML = '';
+            const icon = document.createElement('i');
+            icon.setAttribute('data-lucide', 'thumbs-up');
+            upBtn.appendChild(icon);
+            upBtn.appendChild(document.createTextNode(` ${upvotes || 0}`));
+        }
+        
+        if (downBtn) {
+            downBtn.innerHTML = '';
+            const icon = document.createElement('i');
+            icon.setAttribute('data-lucide', 'thumbs-down');
+            downBtn.appendChild(icon);
+            downBtn.appendChild(document.createTextNode(` ${downvotes || 0}`));
+        }
+        
+        IconManager.refresh();
+    }
+    
+    async vote(descriptorId, direction) {
+        try {
+            const response = await fetch(`/api/descriptors/${descriptorId}/vote`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ direction })
+            });
+            
+            if (!response.ok) throw new Error('Failed to vote');
+            
+            const data = await response.json();
+            this.updateVotes(descriptorId, data.upvotes, data.downvotes);
+        } catch (error) {
+            console.error('Voting error:', error);
+            this.app.showNotification('Failed to vote on descriptor', 'error');
+        }
+    }
+    
+    setupAutoSave() {
+        document.querySelectorAll('.descriptor-form').forEach(form => {
+            const textarea = form.querySelector('textarea');
+            const category = form.dataset.category;
+            
+            textarea.addEventListener('input', () => {
+                clearTimeout(this.autoSaveTimeout);
+                this.autoSaveTimeout = setTimeout(() => this.autoSave(form), 2000);
+            });
+            
+            form.addEventListener('submit', (e) => this.handleSubmit(e, form, category));
+        });
+    }
+    
+    autoSave(form) {
+        const textarea = form.querySelector('textarea[name="text"]');
+        const category = form.dataset.category;
+        const text = textarea.value.trim();
+        
+        if (text) {
+            localStorage.setItem(`descriptor_draft_${category}`, text);
+            this.showAutoSaveIndicator(form);
+        }
+    }
+    
+    showAutoSaveIndicator(form) {
+        const button = form.querySelector('button[type="submit"]');
+        const originalContent = Array.from(button.childNodes).map(node => node.cloneNode(true));
+        
+        button.textContent = '';
+        const saveIcon = document.createElement('i');
+        saveIcon.setAttribute('data-lucide', 'save');
+        button.appendChild(saveIcon);
+        button.appendChild(document.createTextNode(' Auto-saved'));
+        button.classList.add('btn-outline-secondary');
+        
+        setTimeout(() => {
+            button.textContent = '';
+            originalContent.forEach(node => button.appendChild(node));
+            button.classList.remove('btn-outline-secondary');
+            IconManager.refresh();
+        }, 2000);
+    }
+    
+    async handleSubmit(e, form, category) {
+        e.preventDefault();
+        
+        const textarea = form.querySelector('textarea');
+        const text = textarea.value.trim();
+        
+        if (!text) {
+            this.app.showNotification('Please enter a description', 'warning');
+            return;
+        }
+        
+        try {
+            const trialId = this.app.extractTrialId();
+            const formData = new FormData();
+            formData.append('text', text);
+            formData.append('category', category);
+            
+            const response = await fetch(`/trials/${trialId}/descriptors`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                this.app.showNotification(`${category.charAt(0).toUpperCase() + category.slice(1)} description saved`, 'success');
+                textarea.value = '';
+                localStorage.removeItem(`descriptor_draft_${category}`);
+                setTimeout(() => window.location.reload(), 1000);
+            } else if (response.status === 401) {
+                this.app.showNotification('Please log in to save your impressions', 'error');
+                setTimeout(() => window.location.href = '/login', 2000);
+            } else if (response.status === 403) {
+                this.app.showNotification('Permission denied', 'error');
+            } else {
+                throw new Error(`Submit failed (${response.status})`);
+            }
+        } catch (error) {
+            console.error('Submit error:', error);
+            this.app.showNotification('Error saving descriptor. Please try again.', 'error');
+        }
+    }
+    
+    loadSavedDrafts() {
+        Object.keys(this.categories).forEach(category => {
+            if (category === 'general') return;
+            
+            const saved = localStorage.getItem(`descriptor_draft_${category}`);
+            if (saved) {
+                const form = document.querySelector(`.descriptor-form[data-category="${category}"]`);
+                if (form) {
+                    const textarea = form.querySelector('textarea');
+                    textarea.value = saved;
+                }
+            }
+        });
+    }
+}
+
+// ============================================================================
+// UI UTILITIES
+// ============================================================================
+
+class UIManager {
+    constructor(app) {
+        this.app = app;
+    }
+    
+    initializeTooltips() {
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+            new bootstrap.Tooltip(el);
+        });
+    }
+    
+    initializeModals() {
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('shown.bs.modal', function() {
+                const firstInput = modal.querySelector('input, textarea, select');
+                if (firstInput) firstInput.focus();
+            });
+        });
+    }
+    
+    initializeClipboard() {
+        if (!navigator.clipboard) return;
+        
+        document.querySelectorAll('[data-clipboard]').forEach(el => {
+            el.addEventListener('click', async function() {
+                try {
+                    await navigator.clipboard.writeText(this.dataset.clipboard);
+                    this.app.showNotification('Copied to clipboard', 'success');
+                } catch (error) {
+                    console.error('Copy failed:', error);
+                    this.app.showNotification('Failed to copy', 'error');
+                }
+            });
+        });
+    }
+    
+    updateTimestamps() {
+        document.querySelectorAll('[data-timestamp]').forEach(el => {
+            const timestamp = new Date(el.dataset.timestamp);
+            el.textContent = this.formatRelativeTime(timestamp);
+        });
+    }
+    
+    formatRelativeTime(date) {
+        const now = new Date();
+        const diff = now - date;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+        
+        if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
+        if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+        if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+        return 'Just now';
+    }
+}
+
+// ============================================================================
+// MAIN APPLICATION CLASS
+// ============================================================================
+
+class ARVLab {
+    constructor() {
+        this.ws = new WebSocketManager(this);
+        this.descriptors = new DescriptorManager(this);
+        this.ui = new UIManager(this);
+        this.init();
+    }
+    
+    init() {
+        this.setupEventListeners();
+        this.ui.initializeTooltips();
+        this.ui.initializeModals();
+        this.ui.initializeClipboard();
+        
+        // Update timestamps every minute
+        this.ui.updateTimestamps();
+        setInterval(() => this.ui.updateTimestamps(), 60000);
+        
+        // Connect to WebSocket for trial pages
+        if (window.location.pathname.includes('/trials/')) {
+            const trialId = this.extractTrialId();
+            if (trialId) this.ws.connect(trialId);
+        }
+        
+        // Setup descriptor system
+        this.descriptors.setupAutoSave();
+        this.descriptors.loadSavedDrafts();
+    }
+    
+    setupEventListeners() {
+        // Form validation
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', (e) => this.handleFormSubmit(e));
+        });
+        
+        // Action handlers
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('[data-action]')) {
+                this.handleAction(e);
+            }
+        });
+    }
+    
+    extractTrialId() {
+        const pathParts = window.location.pathname.split('/');
+        const trialIndex = pathParts.indexOf('trials');
+        return trialIndex !== -1 && pathParts[trialIndex + 1] ? parseInt(pathParts[trialIndex + 1]) : null;
+    }
+    
+    handleFormSubmit(event) {
+        const form = event.target;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        
+        if (submitBtn) {
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+        }
+        
+        if (!this.validateForm(form)) {
+            event.preventDefault();
+            if (submitBtn) {
+                submitBtn.classList.remove('loading');
+                submitBtn.disabled = false;
+            }
+        }
+    }
+    
+    validateForm(form) {
+        let isValid = true;
+        const requiredFields = form.querySelectorAll('[required]');
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                this.showFieldError(field, 'This field is required');
+                isValid = false;
+            } else {
+                this.clearFieldError(field);
+            }
+        });
+        
+        // Email validation
+        form.querySelectorAll('input[type="email"]').forEach(field => {
+            if (field.value && !this.isValidEmail(field.value)) {
+                this.showFieldError(field, 'Please enter a valid email address');
+                isValid = false;
+            }
+        });
+        
+        return isValid;
+    }
+    
+    isValidEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+    
+    showFieldError(field, message) {
+        this.clearFieldError(field);
+        field.classList.add('is-invalid');
+        
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'invalid-feedback';
+        errorDiv.textContent = message;
+        field.parentNode.appendChild(errorDiv);
+    }
+    
+    clearFieldError(field) {
+        field.classList.remove('is-invalid');
+        const errorDiv = field.parentNode.querySelector('.invalid-feedback');
+        if (errorDiv) errorDiv.remove();
+    }
+    
+    handleAction(event) {
+        event.preventDefault();
+        const action = event.target.dataset.action;
+        const target = event.target.dataset.target;
+        
+        switch (action) {
+            case 'start-trial':
+                this.startTrial(target);
+                break;
+            case 'delete-target':
+                this.deleteTarget(target);
+                break;
+            default:
+                console.log('Unknown action:', action);
+        }
+    }
+    
+    async startTrial(trialId) {
+        if (!confirm('Are you sure you want to start this task?')) return;
+        
+        try {
+            const response = await fetch(`/trials/${trialId}/start`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            if (response.ok) {
+                this.showNotification('Task started successfully', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                throw new Error('Failed to start task');
+            }
+        } catch (error) {
+            console.error('Start trial error:', error);
+            this.showNotification('Failed to start task', 'error');
+        }
+    }
+    
+    async deleteTarget(targetId) {
+        if (!confirm('Are you sure you want to delete this target?')) return;
+        
+        try {
+            const response = await fetch(`/targets/${targetId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            if (response.ok) {
+                this.showNotification('Target deleted successfully', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                throw new Error('Failed to delete target');
+            }
+        } catch (error) {
+            console.error('Delete target error:', error);
+            this.showNotification('Failed to delete target', 'error');
+        }
+    }
+    
+    updateTrialStatus(status) {
+        document.querySelectorAll('.trial-status').forEach(badge => {
+            badge.textContent = status.toUpperCase();
+            badge.className = `badge trial-status bg-${this.getStatusColor(status)}`;
+        });
+        this.showNotification(`Task status changed to ${status}`, 'info');
+    }
+    
+    getStatusColor(status) {
+        const colors = {
+            draft: 'secondary',
+            open: 'success',
+            live: 'primary',
+            settled: 'info'
+        };
+        return colors[status] || 'secondary';
+    }
+    
+    showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        notification.style.cssText = `
+            top: 20px; right: 20px; z-index: 9999; min-width: 300px;
+            opacity: 0; transform: translateX(100%); transition: all 0.3s ease;
+        `;
+        
+        notification.textContent = message;
+        
+        const closeButton = document.createElement('button');
+        closeButton.type = 'button';
+        closeButton.className = 'btn-close';
+        closeButton.setAttribute('data-bs-dismiss', 'alert');
+        notification.appendChild(closeButton);
+        
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.style.opacity = '1';
+            notification.style.transform = 'translateX(0)';
+        }, 100);
+        
+        // Auto remove
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => notification.remove(), 300);
+        }, 5000);
+    }
+    
+    escapeHtml(text) {
+        const map = {
+            '&': '&amp;', '<': '&lt;', '>': '&gt;',
+            '"': '&quot;', "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+    
+    async apiCall(url, options = {}) {
+        const defaultOptions = {
+            headers: { 'Content-Type': 'application/json' }
+        };
+        
+        try {
+            const response = await fetch(url, { ...defaultOptions, ...options });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const contentType = response.headers.get('content-type');
+            return contentType && contentType.includes('application/json')
+                ? await response.json()
+                : await response.text();
+        } catch (error) {
+            console.error('API call failed:', error);
+            throw error;
+        }
+    }
+    
+    // Public methods for external access
+    voteDescriptor(descriptorId, direction) {
+        return this.descriptors.vote(descriptorId, direction);
+    }
+}
+
+// ============================================================================
+// GLOBAL FUNCTIONS & INITIALIZATION
+// ============================================================================
+
+// Initialize icons when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    IconManager.initialize();
+});
+
+// Global icon refresh function
+window.refreshIcons = function() {
+    IconManager.refresh();
+};
+
+// Initialize the application
+const app = new ARVLab();
+window.app = app;
+
+// Global utility functions for templates
+window.startTrial = function(trialId) {
+    app.startTrial(trialId);
+};
+
+window.deleteTarget = function(targetId) {
+    app.deleteTarget(targetId);
+};
+
+window.voteDescriptor = function(descriptorId, direction) {
+    app.voteDescriptor(descriptorId, direction);
+};
+
+// ARV Modal Functions
+window.openDescriptorModal = function(category) {
+    const modal = document.getElementById('addDescriptorModal');
+    if (!modal) return;
+    
+    const categoryInfo = {
+        colours: {
+            title: 'Add Colour Description',
+            icon: 'droplet',
+            guidance: 'Describe any colours you perceive - specific hues, intensities, patterns, or colour combinations.',
+            examples: 'Deep blue, bright red, golden yellow, earth tones, rainbow pattern, faded colours',
+            placeholder: 'Deep blue with hints of silver...'
+        },
+        tactile: {
+            title: 'Add Tactile Description',
+            icon: 'hand',
+            guidance: 'Describe physical sensations and textures you might feel by touching the target.',
+            examples: 'Rough, smooth, soft, hard, warm, cold, wet, dry, bumpy, silky',
+            placeholder: 'Smooth and cool to the touch...'
+        },
+        energy: {
+            title: 'Add Energy Description',
+            icon: 'zap',
+            guidance: 'Describe the energy, vibrational quality, or intensity you sense from the target.',
+            examples: 'High energy, calm, vibrant, static, pulsing, flowing, intense, gentle',
+            placeholder: 'High energy with pulsing vibrations...'
+        },
+        smell: {
+            title: 'Add Smell Description',
+            icon: 'wind',
+            guidance: 'Describe any scents, odours, or aromatic qualities you perceive from the target.',
+            examples: 'Fresh, floral, earthy, metallic, sweet, sharp, musty, clean',
+            placeholder: 'Fresh and floral scent...'
+        },
+        sound: {
+            title: 'Add Sound Description',
+            icon: 'volume-2',
+            guidance: 'Describe any sounds, noises, or acoustic qualities associated with the target.',
+            examples: 'Loud, quiet, musical, harsh, rhythmic, constant, intermittent, echoing',
+            placeholder: 'Low rhythmic humming sound...'
+        },
+        visual: {
+            title: 'Add Visual Description',
+            icon: 'eye',
+            guidance: 'Describe shapes, forms, patterns, movements, or visual characteristics of the target.',
+            examples: 'Geometric, organic, angular, curved, symmetrical, chaotic, static, moving',
+            placeholder: 'Angular geometric patterns...'
+        }
+    };
+    
+    const info = categoryInfo[category];
+    if (!info) return;
+    
+    // Update modal content
+    const elements = {
+        descriptorCategory: category,
+        descriptorModalTitleText: info.title,
+        descriptorModalIcon: info.icon,
+        guidanceText: info.guidance,
+        descriptorLabel: `${info.title.replace('Add ', '')}`,
+        descriptorHint: `What ${category} do you perceive?`,
+        exampleText: info.examples,
+        descriptorText: info.placeholder
+    };
+    
+    Object.entries(elements).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element) {
+            if (id === 'descriptorModalIcon') {
+                element.setAttribute('data-lucide', value);
+            } else if (id === 'descriptorText') {
+                element.placeholder = value;
+            } else {
+                element.textContent = value;
+                if (id === 'descriptorCategory') element.value = value;
+            }
+        }
+    });
+    
+    IconManager.refresh();
+    new bootstrap.Modal(modal).show();
+};
+
+// Sharing functions
+window.shareSubmissionSuccess = function() {
+    const shareText = `🎯 Just recorded my remote viewing impressions for a prediction task on ARVLab! 
+
+Exploring the fascinating world of consciousness research and prediction accuracy. Join me in this scientific journey! 🔮✨
+
+#RemoteViewing #ConsciousnessResearch #ARVLab`;
+    
+    navigator.clipboard.writeText(shareText + `\n\n${window.location.href}`).then(() => {
+        app.showNotification('Share text copied to clipboard!', 'success');
+    }).catch(() => {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = shareText + `\n\n${window.location.href}`;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        app.showNotification('Share text copied!', 'success');
+    });
+};
+
+window.viewMyDashboard = function() {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('descriptorSuccessModal'));
+    if (modal) modal.hide();
+    setTimeout(() => window.location.href = '/dashboard', 300);
+};
+
+window.continueBrowsing = function() {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('descriptorSuccessModal'));
+    if (modal) modal.hide();
+    setTimeout(() => window.location.href = '/trials', 300);
+};
+
+// Auto-refresh for active trials
+if (window.location.pathname.includes('/trials/')) {
+    const trialStatus = document.querySelector('.trial-status');
+    if (trialStatus && trialStatus.textContent.trim() === 'OPEN') {
+        setInterval(() => location.reload(), 30000);
+    }
+}/* Cache buster: Fri Sep 19 01:47:17 AM UTC 2025 */

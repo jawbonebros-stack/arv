@@ -1,0 +1,41 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="desert" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#fdcb6e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e17055;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="pyramid" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ddd;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#f5f5f5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#999;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="200" height="200" fill="url(#desert)"/>
+  
+  <!-- Sand dunes -->
+  <ellipse cx="50" cy="180" rx="60" ry="15" fill="#f39c12"/>
+  <ellipse cx="150" cy="175" rx="40" ry="12" fill="#e67e22"/>
+  
+  <!-- Pyramid -->
+  <polygon points="100,40 50,150 150,150" fill="url(#pyramid)"/>
+  
+  <!-- Pyramid shading -->
+  <polygon points="100,40 100,150 150,150" fill="#bbb"/>
+  
+  <!-- Pyramid blocks -->
+  <line x1="55" y1="140" x2="145" y2="140" stroke="#999" stroke-width="1"/>
+  <line x1="65" y1="120" x2="135" y2="120" stroke="#999" stroke-width="1"/>
+  <line x1="75" y1="100" x2="125" y2="100" stroke="#999" stroke-width="1"/>
+  <line x1="85" y1="80" x2="115" y2="80" stroke="#999" stroke-width="1"/>
+  
+  <!-- Sun -->
+  <circle cx="160" cy="50" r="18" fill="#f1c40f"/>
+  <line x1="160" y1="20" x2="160" y2="32" stroke="#f39c12" stroke-width="3"/>
+  <line x1="180" y1="50" x2="192" y2="50" stroke="#f39c12" stroke-width="3"/>
+  <line x1="175" y1="35" x2="183" y2="27" stroke="#f39c12" stroke-width="2"/>
+  <line x1="175" y1="65" x2="183" y2="73" stroke="#f39c12" stroke-width="2"/>
+  
+  <!-- Text -->
+  <text x="100" y="185" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">PYRAMID</text>
+</svg>

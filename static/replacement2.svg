@@ -1,0 +1,24 @@
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Nature scene -->
+  <rect x="0" y="0" width="100" height="100" fill="#87ceeb"/>
+  
+  <!-- Mountains -->
+  <polygon points="0,70 30,40 60,50 100,30 100,100 0,100" fill="#8b7355"/>
+  <polygon points="20,60 40,35 70,45 90,25 100,35 100,100 0,100" fill="#a0522d"/>
+  
+  <!-- Sun -->
+  <circle cx="80" cy="25" r="8" fill="#ffd700"/>
+  <path d="M80,10 L80,15 M95,25 L90,25 M80,40 L80,35 M65,25 L70,25 M87,12 L85,14 M87,38 L85,36 M73,12 L75,14 M73,38 L75,36" stroke="#ffd700" stroke-width="2"/>
+  
+  <!-- Trees -->
+  <rect x="15" y="55" width="4" height="15" fill="#8b4513"/>
+  <circle cx="17" cy="50" r="8" fill="#228b22"/>
+  
+  <rect x="70" y="60" width="3" height="12" fill="#8b4513"/>
+  <circle cx="71.5" cy="55" r="6" fill="#32cd32"/>
+  
+  <!-- Clouds -->
+  <circle cx="25" cy="20" r="5" fill="white" opacity="0.8"/>
+  <circle cx="30" cy="18" r="6" fill="white" opacity="0.8"/>
+  <circle cx="35" cy="20" r="4" fill="white" opacity="0.8"/>
+</svg>

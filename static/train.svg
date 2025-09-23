@@ -1,0 +1,42 @@
+<svg width="200" height="120" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+  <!-- Train body -->
+  <rect x="30" y="40" width="140" height="40" fill="#3366cc" stroke="#1a4d99" stroke-width="2" rx="5"/>
+  
+  <!-- Train front -->
+  <polygon points="20,50 30,40 30,80 20,70" fill="#2952a3" stroke="#1a4d99" stroke-width="2"/>
+  
+  <!-- Windows -->
+  <rect x="40" y="50" width="15" height="15" fill="#87ceeb" stroke="#4682b4" stroke-width="1"/>
+  <rect x="65" y="50" width="15" height="15" fill="#87ceeb" stroke="#4682b4" stroke-width="1"/>
+  <rect x="90" y="50" width="15" height="15" fill="#87ceeb" stroke="#4682b4" stroke-width="1"/>
+  <rect x="115" y="50" width="15" height="15" fill="#87ceeb" stroke="#4682b4" stroke-width="1"/>
+  <rect x="140" y="50" width="15" height="15" fill="#87ceeb" stroke="#4682b4" stroke-width="1"/>
+  
+  <!-- Wheels -->
+  <circle cx="50" cy="85" r="12" fill="#333" stroke="#000" stroke-width="2"/>
+  <circle cx="50" cy="85" r="6" fill="#666"/>
+  <circle cx="90" cy="85" r="12" fill="#333" stroke="#000" stroke-width="2"/>
+  <circle cx="90" cy="85" r="6" fill="#666"/>
+  <circle cx="130" cy="85" r="12" fill="#333" stroke="#000" stroke-width="2"/>
+  <circle cx="130" cy="85" r="6" fill="#666"/>
+  
+  <!-- Steam -->
+  <circle cx="15" cy="30" r="3" fill="#ddd" opacity="0.7"/>
+  <circle cx="12" cy="20" r="4" fill="#ddd" opacity="0.6"/>
+  <circle cx="18" cy="15" r="3" fill="#ddd" opacity="0.5"/>
+  
+  <!-- Tracks -->
+  <rect x="0" y="95" width="200" height="4" fill="#8b4513"/>
+  <rect x="0" y="105" width="200" height="4" fill="#8b4513"/>
+  
+  <!-- Track ties -->
+  <rect x="10" y="97" width="8" height="10" fill="#654321"/>
+  <rect x="30" y="97" width="8" height="10" fill="#654321"/>
+  <rect x="50" y="97" width="8" height="10" fill="#654321"/>
+  <rect x="70" y="97" width="8" height="10" fill="#654321"/>
+  <rect x="90" y="97" width="8" height="10" fill="#654321"/>
+  <rect x="110" y="97" width="8" height="10" fill="#654321"/>
+  <rect x="130" y="97" width="8" height="10" fill="#654321"/>
+  <rect x="150" y="97" width="8" height="10" fill="#654321"/>
+  <rect x="170" y="97" width="8" height="10" fill="#654321"/>
+</svg>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Feedback Form - Onsenses</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@0.294.0/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="text-center mb-5">
+                    <h1><i data-lucide="message-circle"></i> Test Feedback System</h1>
+                    <p class="lead text-muted">Test the feedback form functionality and formatting</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h5><i data-lucide="check-circle" class="text-success"></i> What to Test:</h5>
+                        <ol class="mb-4">
+                            <li><strong>Floating Button:</strong> Look for the gray feedback button in the bottom-right corner</li>
+                            <li><strong>Star Ratings:</strong> Click stars to rate (should fill from left to right)</li>
+                            <li><strong>Form Fields:</strong> Fill out text areas and checkboxes</li>
+                            <li><strong>Form Submission:</strong> Submit the form and check for success message</li>
+                        </ol>
+
+                        <div class="alert alert-info">
+                            <h6><i data-lucide="info"></i> Expected Behavior:</h6>
+                            <ul class="mb-0">
+                                <li>Floating button appears in bottom-right corner</li>
+                                <li>Stars turn yellow when hovered and clicked</li>
+                                <li>Form requires both star ratings to submit</li>
+                                <li>Success message appears after submission</li>
+                                <li>Modal closes automatically after success</li>
+                            </ul>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="button" class="btn btn-primary btn-lg" onclick="testFeedbackButton()">
+                                <i data-lucide="play"></i> Test Feedback Button
+                            </button>
+                            <a href="/admin/feedback" class="btn btn-outline-secondary btn-lg ms-3">
+                                <i data-lucide="eye"></i> View Submissions
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6><i data-lucide="settings"></i> Configuration</h6>
+                                <p class="small text-muted">Customize the feedback system</p>
+                                <a href="/static/feedback_config.html" class="btn btn-sm btn-outline-primary" target="_blank">
+                                    Open Configuration Guide
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6><i data-lucide="bar-chart-2"></i> Analytics</h6>
+                                <p class="small text-muted">View feedback dashboard</p>
+                                <a href="/admin/feedback" class="btn btn-sm btn-outline-primary">
+                                    Admin Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Feedback Modal Component -->
+    <div id="feedbackModalContainer"></div>
+
+    <script>
+        // Load feedback modal component
+        fetch('/templates/components/feedback_modal.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('feedbackModalContainer').innerHTML = html;
+                
+                // Initialize Lucide icons
+                if (typeof window.initializeLucideIcons === 'function') {
+                    try { window.initializeLucideIcons(); } catch(e) { console.warn('Icon initialization error:', e); }
+                }
+                
+                // Test function to manually trigger feedback modal
+                window.testFeedbackButton = function() {
+                    if (typeof showFeedbackModal === 'function') {
+                        showFeedbackModal();
+                    } else {
+                        // Fallback: trigger the floating button
+                        const feedbackButton = document.getElementById('feedbackButton');
+                        if (feedbackButton) {
+                            feedbackButton.click();
+                        } else {
+                            alert('Feedback button not found. Make sure the component is loaded.');
+                        }
+                    }
+                };
+            })
+            .catch(error => {
+                console.error('Error loading feedback modal:', error);
+                document.getElementById('feedbackModalContainer').innerHTML = 
+                    '<div class="alert alert-danger">Error loading feedback component</div>';
+            });
+
+        // Initialize Lucide icons
+        if (typeof window.initializeLucideIcons === 'function') {
+            try { window.initializeLucideIcons(); } catch(e) { console.warn('Icon initialization error:', e); }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</body>
+</html>

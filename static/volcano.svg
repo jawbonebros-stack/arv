@@ -1,0 +1,26 @@
+<svg width="200" height="150" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b35;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d63031;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="mountain" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#636e72;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2d3436;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="200" height="150" fill="url(#bg)"/>
+  
+  <!-- Mountain/Volcano shape -->
+  <polygon points="100,30 60,120 140,120" fill="url(#mountain)"/>
+  <polygon points="100,30 80,80 120,80" fill="#636e72"/>
+  
+  <!-- Lava/fire effect -->
+  <circle cx="100" cy="35" r="8" fill="#fdcb6e"/>
+  <circle cx="95" cy="40" r="5" fill="#e17055"/>
+  <circle cx="105" cy="42" r="6" fill="#fd79a8"/>
+  
+  <!-- Text -->
+  <text x="100" y="140" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12" font-weight="bold">VOLCANO</text>
+</svg>

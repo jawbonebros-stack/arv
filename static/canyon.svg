@@ -1,0 +1,37 @@
+<svg width="200" height="150" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#fd79a8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#fdcb6e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="rock" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#e17055;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d63031;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="200" height="150" fill="url(#sky)"/>
+  
+  <!-- Canyon walls -->
+  <polygon points="0,60 40,40 40,150 0,150" fill="url(#rock)"/>
+  <polygon points="160,40 200,60 200,150 160,150" fill="url(#rock)"/>
+  
+  <!-- Canyon layers -->
+  <rect x="0" y="80" width="40" height="3" fill="#00b894"/>
+  <rect x="0" y="100" width="40" height="3" fill="#00b894"/>
+  <rect x="0" y="120" width="40" height="3" fill="#00b894"/>
+  
+  <rect x="160" y="80" width="40" height="3" fill="#00b894"/>
+  <rect x="160" y="100" width="40" height="3" fill="#00b894"/>
+  <rect x="160" y="120" width="40" height="3" fill="#00b894"/>
+  
+  <!-- Canyon floor -->
+  <rect x="40" y="130" width="120" height="20" fill="#6c5ce7"/>
+  
+  <!-- Rock formations -->
+  <polygon points="60,60 80,40 80,130 60,130" fill="#a29bfe"/>
+  <polygon points="120,40 140,60 140,130 120,130" fill="#a29bfe"/>
+  
+  <!-- Text -->
+  <text x="100" y="145" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12" font-weight="bold">CANYON</text>
+</svg>

@@ -1,0 +1,63 @@
+<svg width="200" height="150" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="desk" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#8b4513;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#654321;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="screen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#74b9ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0984e3;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="200" height="150" fill="#f8f9fa"/>
+  
+  <!-- Desk surface -->
+  <rect x="0" y="110" width="200" height="40" fill="url(#desk)"/>
+  
+  <!-- Laptop base -->
+  <rect x="50" y="95" width="100" height="15" rx="3" fill="#2d3436"/>
+  
+  <!-- Laptop screen -->
+  <rect x="55" y="50" width="90" height="50" rx="3" fill="#636e72"/>
+  
+  <!-- Screen display -->
+  <rect x="60" y="55" width="80" height="40" rx="2" fill="url(#screen)"/>
+  
+  <!-- Screen content -->
+  <rect x="65" y="60" width="20" height="3" fill="white"/>
+  <rect x="65" y="65" width="35" height="2" fill="white" opacity="0.8"/>
+  <rect x="65" y="68" width="30" height="2" fill="white" opacity="0.8"/>
+  <rect x="65" y="71" width="25" height="2" fill="white" opacity="0.8"/>
+  
+  <!-- Code-like elements -->
+  <rect x="110" y="60" width="25" height="2" fill="#00b894"/>
+  <rect x="110" y="63" width="20" height="2" fill="#fd79a8"/>
+  <rect x="110" y="66" width="22" height="2" fill="#fdcb6e"/>
+  
+  <!-- Apple logo -->
+  <circle cx="100" cy="45" r="3" fill="#ddd"/>
+  
+  <!-- Keyboard -->
+  <rect x="55" y="100" width="90" height="8" fill="#636e72"/>
+  
+  <!-- Keys -->
+  <rect x="60" y="102" width="4" height="2" fill="#ddd"/>
+  <rect x="66" y="102" width="4" height="2" fill="#ddd"/>
+  <rect x="72" y="102" width="4" height="2" fill="#ddd"/>
+  <rect x="78" y="102" width="4" height="2" fill="#ddd"/>
+  <rect x="84" y="102" width="4" height="2" fill="#ddd"/>
+  
+  <rect x="60" y="105" width="4" height="2" fill="#ddd"/>
+  <rect x="66" y="105" width="4" height="2" fill="#ddd"/>
+  <rect x="72" y="105" width="4" height="2" fill="#ddd"/>
+  <rect x="78" y="105" width="4" height="2" fill="#ddd"/>
+  <rect x="84" y="105" width="4" height="2" fill="#ddd"/>
+  
+  <!-- Trackpad -->
+  <rect x="90" y="102" width="15" height="6" rx="1" fill="#ddd"/>
+  
+  <!-- Text -->
+  <text x="100" y="140" text-anchor="middle" fill="#2d3436" font-family="Arial, sans-serif" font-size="12" font-weight="bold">LAPTOP</text>
+</svg>

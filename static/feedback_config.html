@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback System Configuration - Onsenses</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@0.294.0/dist/umd/lucide.js"></script>
+    <style>
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+        .file-path {
+            background: #6c757d;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .config-section {
+            margin-bottom: 40px;
+        }
+        .quick-link {
+            background: #e9ecef;
+            border-left: 4px solid #6c757d;
+            padding: 15px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1><i data-lucide="settings"></i> Feedback System Configuration</h1>
+                    <a href="/admin" class="btn btn-outline-secondary">
+                        <i data-lucide="arrow-left"></i> Back to Admin
+                    </a>
+                </div>
+
+                <div class="alert alert-info">
+                    <h5><i data-lucide="info"></i> Quick Start</h5>
+                    <p>The feedback system is already working! Look for the gray circular button (💬) in the bottom-right corner of any page. This guide shows you how to customize it.</p>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="config-section">
+                    <h2>Quick Configuration Options</h2>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="quick-link">
+                                <h6><i data-lucide="move"></i> Move Button Position</h6>
+                                <p>Edit <span class="file-path">templates/components/feedback_modal.html</span><br>
+                                Change <code>right: 30px</code> to <code>left: 30px</code></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="quick-link">
+                                <h6><i data-lucide="palette"></i> Change Button Color</h6>
+                                <p>Edit <span class="file-path">templates/components/feedback_modal.html</span><br>
+                                Change <code>background: #6c757d</code> to any color</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Button Configuration -->
+                <div class="config-section">
+                    <h2><i data-lucide="circle"></i> 1. Button Configuration</h2>
+                    <p><strong>File:</strong> <span class="file-path">templates/components/feedback_modal.html</span> (CSS section, lines 168-216)</p>
+                    
+                    <h4>Button Position</h4>
+                    <div class="code-block">
+.feedback-float-btn {
+    bottom: 30px;    /* Distance from bottom (default: 30px) */
+    right: 30px;     /* Distance from right (default: 30px) */
+    width: 56px;     /* Button size (default: 56px) */
+    height: 56px;
+}</div>
+
+                    <h4>Button Appearance</h4>
+                    <div class="code-block">
+.feedback-float-btn {
+    background: #6c757d;     /* Button color (default: neutral gray) */
+    color: white;            /* Icon color */
+    border-radius: 50%;      /* Shape (50% = circle) */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);  /* Shadow */
+}</div>
+
+                    <h4>Button Icon</h4>
+                    <p>Change the icon in the HTML section:</p>
+                    <div class="code-block">
+&lt;div id="feedbackButton" class="feedback-float-btn" title="Share Feedback"&gt;
+    💬  &lt;!-- Change this emoji or use &lt;i data-lucide="message-circle"&gt;&lt;/i&gt; --&gt;
+&lt;/div&gt;</div>
+                </div>
+
+                <!-- Workflow Detection -->
+                <div class="config-section">
+                    <h2><i data-lucide="git-branch"></i> 2. Workflow Detection</h2>
+                    <p><strong>File:</strong> <span class="file-path">templates/components/feedback_modal.html</span> (lines 311-364)</p>
+                    
+                    <h4>Add New Workflow Types</h4>
+                    <div class="code-block">
+function detectCurrentWorkflow() {
+    const path = window.location.pathname;
+    
+    // Add your custom workflow detection here
+    if (path.includes('/your-new-page')) {
+        return {
+            name: 'your_workflow_name',
+            title: 'Your Workflow Title',
+            description: 'Description shown to users',
+            context: 'your_context'
+        };
+    }
+    // ... existing workflows ...
+}</div>
+                </div>
+
+                <!-- Form Configuration -->
+                <div class="config-section">
+                    <h2><i data-lucide="edit-3"></i> 3. Form Configuration</h2>
+                    <p><strong>File:</strong> <span class="file-path">templates/components/feedback_modal.html</span> (lines 1-167)</p>
+                    
+                    <h4>Add New Issue Types</h4>
+                    <div class="code-block">
+&lt;div class="form-check"&gt;
+    &lt;input class="form-check-input" type="checkbox" name="issues" value="your_new_issue"&gt;
+    &lt;label class="form-check-label"&gt;Your New Issue Description&lt;/label&gt;
+&lt;/div&gt;</div>
+
+                    <h4>Modify Text Fields</h4>
+                    <div class="code-block">
+&lt;div class="mb-3"&gt;
+    &lt;label for="feedbackText" class="form-label"&gt;Your Feedback&lt;/label&gt;
+    &lt;textarea class="form-control" id="feedbackText" name="feedback_text" 
+              rows="3" placeholder="Tell us about your experience..."&gt;&lt;/textarea&gt;
+&lt;/div&gt;</div>
+                </div>
+
+                <!-- Quick Examples -->
+                <div class="config-section">
+                    <h2><i data-lucide="zap"></i> Quick Examples</h2>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>Move Button to Left Side</h4>
+                            <div class="code-block">
+.feedback-float-btn {
+    left: 30px;    /* Instead of right: 30px */
+}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Change to Blue Color</h4>
+                            <div class="code-block">
+.feedback-float-btn {
+    background: #007bff;
+}</div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>Hide on Specific Pages</h4>
+                            <div class="code-block">
+&lt;style&gt;
+.feedback-float-btn { 
+    display: none !important; 
+}
+&lt;/style&gt;</div>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Change Icon to Gear</h4>
+                            <div class="code-block">
+&lt;div id="feedbackButton"...&gt;
+    &lt;i data-lucide="settings"&gt;&lt;/i&gt;
+&lt;/div&gt;</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Database Configuration -->
+                <div class="config-section">
+                    <h2><i data-lucide="database"></i> 4. Database & Backend</h2>
+                    <p><strong>File:</strong> <span class="file-path">main.py</span> (around line 1600)</p>
+                    
+                    <h4>Feedback Data Fields</h4>
+                    <div class="alert alert-light">
+                        <ul class="mb-0">
+                            <li><strong>workflow</strong> - The workflow name (from JavaScript detection)</li>
+                            <li><strong>context</strong> - Additional context information</li>
+                            <li><strong>overall_rating</strong> - 1-5 star rating</li>
+                            <li><strong>ease_rating</strong> - 1-5 star rating for ease of use</li>
+                            <li><strong>feedback_text</strong> - User's text feedback</li>
+                            <li><strong>suggestions</strong> - User suggestions</li>
+                            <li><strong>issues</strong> - JSON array of selected issues</li>
+                            <li><strong>contact_ok</strong> - Whether user agrees to be contacted</li>
+                            <li><strong>page_url</strong> - URL where feedback was submitted</li>
+                            <li><strong>user_agent</strong> - Browser information</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Access Links -->
+                <div class="config-section">
+                    <h2><i data-lucide="link"></i> Access & Management</h2>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <i data-lucide="message-circle" class="mb-2"></i>
+                                    <h6>View Feedback</h6>
+                                    <a href="/admin/feedback" class="btn btn-sm btn-outline-primary">Admin Dashboard</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <i data-lucide="file-text" class="mb-2"></i>
+                                    <h6>Full Guide</h6>
+                                    <a href="javascript:void(0)" onclick="alert('Check feedback_config.md in your project root')" class="btn btn-sm btn-outline-secondary">feedback_config.md</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <i data-lucide="code" class="mb-2"></i>
+                                    <h6>Test Button</h6>
+                                    <a href="/static/test-feedback.html" class="btn btn-sm btn-outline-success" target="_blank">Test Page</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-success">
+                    <h5><i data-lucide="check-circle"></i> Need Help?</h5>
+                    <p class="mb-0">All configuration changes take effect immediately when you save the files. No server restart needed for frontend changes!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        if (typeof window.initializeLucideIcons === 'function') {
+            try { window.initializeLucideIcons(); } catch(e) { console.warn('Icon initialization error:', e); }
+        }
+    </script>
+</body>
+</html>

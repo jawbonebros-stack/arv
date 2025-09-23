@@ -1,0 +1,45 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ocean" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#74b9ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0984e3;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="board" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#fd79a8;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#fdcb6e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e84393;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="200" height="200" fill="url(#ocean)"/>
+  
+  <!-- Waves -->
+  <path d="M0,130 Q50,120 100,130 T200,130" stroke="white" stroke-width="3" fill="none" opacity="0.7"/>
+  <path d="M0,145 Q30,140 60,145 T120,145 T200,145" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
+  <path d="M0,160 Q40,155 80,160 T160,160 T200,160" stroke="white" stroke-width="1.5" fill="none" opacity="0.3"/>
+  
+  <!-- Surfboard -->
+  <ellipse cx="100" cy="100" rx="70" ry="12" fill="url(#board)" transform="rotate(-15 100 100)"/>
+  
+  <!-- Surfboard details -->
+  <ellipse cx="100" cy="100" rx="65" ry="10" fill="none" stroke="#2d3436" stroke-width="2" transform="rotate(-15 100 100)"/>
+  <line x1="60" y1="90" x2="140" y2="110" stroke="#2d3436" stroke-width="2"/>
+  
+  <!-- Fins -->
+  <polygon points="75,110 80,120 87,115" fill="#2d3436" transform="rotate(-15 100 100)"/>
+  <polygon points="115,115 120,125 127,120" fill="#2d3436" transform="rotate(-15 100 100)"/>
+  
+  <!-- Sun -->
+  <circle cx="160" cy="40" r="18" fill="#f1c40f"/>
+  <line x1="160" y1="15" x2="160" y2="25" stroke="#f39c12" stroke-width="3"/>
+  <line x1="185" y1="40" x2="195" y2="40" stroke="#f39c12" stroke-width="3"/>
+  
+  <!-- Water splash -->
+  <circle cx="50" cy="110" r="4" fill="white" opacity="0.8"/>
+  <circle cx="150" cy="120" r="3" fill="white" opacity="0.6"/>
+  <circle cx="70" cy="125" r="2" fill="white" opacity="0.7"/>
+  <circle cx="130" cy="105" r="2.5" fill="white" opacity="0.8"/>
+  
+  <!-- Text -->
+  <text x="100" y="185" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">SURFBOARD</text>
+</svg>

@@ -1,0 +1,59 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#a29bfe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6c5ce7;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="wing" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#fd79a8;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#e84393;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2d3436;stop-opacity:1" />
+    </radialGradient>
+  </defs>
+  
+  <rect width="200" height="200" fill="url(#sky)"/>
+  
+  <!-- Garden background -->
+  <rect x="0" y="160" width="200" height="40" fill="#00b894"/>
+  
+  <!-- Flowers -->
+  <circle cx="30" cy="170" r="6" fill="#fd79a8"/>
+  <circle cx="170" cy="175" r="5" fill="#fdcb6e"/>
+  <circle cx="50" cy="180" r="4" fill="#e17055"/>
+  <circle cx="150" cy="165" r="4" fill="#a29bfe"/>
+  
+  <!-- Butterfly body -->
+  <ellipse cx="100" cy="100" rx="3" ry="30" fill="#2d3436"/>
+  
+  <!-- Butterfly head -->
+  <circle cx="100" cy="75" r="5" fill="#2d3436"/>
+  
+  <!-- Antennae -->
+  <line x1="97" y1="72" x2="92" y2="65" stroke="#2d3436" stroke-width="2"/>
+  <line x1="103" y1="72" x2="108" y2="65" stroke="#2d3436" stroke-width="2"/>
+  <circle cx="92" cy="65" r="1.5" fill="#2d3436"/>
+  <circle cx="108" cy="65" r="1.5" fill="#2d3436"/>
+  
+  <!-- Upper wings -->
+  <ellipse cx="75" cy="85" rx="22" ry="18" fill="url(#wing)" transform="rotate(-20 75 85)"/>
+  <ellipse cx="125" cy="85" rx="22" ry="18" fill="url(#wing)" transform="rotate(20 125 85)"/>
+  
+  <!-- Lower wings -->
+  <ellipse cx="80" cy="115" rx="15" ry="12" fill="url(#wing)" transform="rotate(-10 80 115)"/>
+  <ellipse cx="120" cy="115" rx="15" ry="12" fill="url(#wing)" transform="rotate(10 120 115)"/>
+  
+  <!-- Wing patterns -->
+  <circle cx="70" cy="85" r="4" fill="#2d3436"/>
+  <circle cx="130" cy="85" r="4" fill="#2d3436"/>
+  <circle cx="77" cy="115" r="3" fill="#2d3436"/>
+  <circle cx="123" cy="115" r="3" fill="#2d3436"/>
+  
+  <!-- Wing spots -->
+  <circle cx="65" cy="80" r="1.5" fill="white"/>
+  <circle cx="135" cy="80" r="1.5" fill="white"/>
+  <circle cx="85" cy="90" r="1.5" fill="white"/>
+  <circle cx="115" cy="90" r="1.5" fill="white"/>
+  
+  <!-- Text -->
+  <text x="100" y="185" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">MONARCH</text>
+</svg>

@@ -1,0 +1,52 @@
+<svg width="200" height="150" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ice" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#74b9ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0984e3;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="snow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ddd;stop-opacity:1" />
+    </radialGradient>
+  </defs>
+  
+  <rect width="200" height="150" fill="url(#ice)"/>
+  
+  <!-- Ice/snow ground -->
+  <ellipse cx="100" cy="140" rx="80" ry="10" fill="url(#snow)"/>
+  
+  <!-- Penguin body -->
+  <ellipse cx="100" cy="90" rx="25" ry="35" fill="#2d3436"/>
+  
+  <!-- Penguin belly -->
+  <ellipse cx="100" cy="95" rx="15" ry="25" fill="white"/>
+  
+  <!-- Penguin head -->
+  <circle cx="100" cy="45" r="18" fill="#2d3436"/>
+  
+  <!-- Eyes -->
+  <circle cx="94" cy="40" r="3" fill="white"/>
+  <circle cx="106" cy="40" r="3" fill="white"/>
+  <circle cx="94" cy="41" r="1.5" fill="#2d3436"/>
+  <circle cx="106" cy="41" r="1.5" fill="#2d3436"/>
+  
+  <!-- Beak -->
+  <polygon points="100,48 95,53 105,53" fill="#e17055"/>
+  
+  <!-- Wings -->
+  <ellipse cx="80" cy="85" rx="8" ry="20" fill="#2d3436"/>
+  <ellipse cx="120" cy="85" rx="8" ry="20" fill="#2d3436"/>
+  
+  <!-- Feet -->
+  <ellipse cx="90" cy="125" rx="6" ry="3" fill="#e17055"/>
+  <ellipse cx="110" cy="125" rx="6" ry="3" fill="#e17055"/>
+  
+  <!-- Snowflakes -->
+  <text x="60" y="30" fill="white" font-size="16">❄</text>
+  <text x="140" y="40" fill="white" font-size="12">❄</text>
+  <text x="30" y="80" fill="white" font-size="14">❄</text>
+  <text x="170" y="90" fill="white" font-size="10">❄</text>
+  
+  <!-- Text -->
+  <text x="100" y="145" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12" font-weight="bold">PENGUIN</text>
+</svg>

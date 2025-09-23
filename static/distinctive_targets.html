@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Built-in Distinctive Targets</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .target-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .target-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .target-svg { width: 100%; height: 200px; border: 1px solid #ddd; border-radius: 4px; }
+        h1 { text-align: center; color: #333; }
+        h3 { color: #555; margin-bottom: 10px; }
+        p { color: #666; font-size: 14px; }
+        .copy-url { background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>Built-in Distinctive Target Images</h1>
+    <p style="text-align: center; margin-bottom: 30px;">These SVG targets are uniquely distinctive and always available for ARV trials.</p>
+    
+    <div class="target-grid">
+        <!-- Target 1: Geometric Spiral -->
+        <div class="target-card">
+            <h3>Geometric Spiral</h3>
+            <svg class="target-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <radialGradient id="spiral-grad" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" style="stop-color:#ff6b6b"/>
+                        <stop offset="100%" style="stop-color:#4ecdc4"/>
+                    </radialGradient>
+                </defs>
+                <rect width="400" height="400" fill="#f8f9fa"/>
+                <g transform="translate(200,200)">
+                    <path d="M0,0 Q50,0 50,50 Q50,100 0,100 Q-100,100 -100,0 Q-100,-150 50,-150 Q250,-150 250,100 Q250,400 -100,400" 
+                          fill="none" stroke="url(#spiral-grad)" stroke-width="8"/>
+                </g>
+            </svg>
+            <p><strong>Tags:</strong> spiral, geometric, flowing, mathematical, dynamic</p>
+            <button class="copy-url" onclick="copyToClipboard('/static/target1.svg')">Copy URL</button>
+        </div>
+
+        <!-- Target 2: Mountain Range -->
+        <div class="target-card">
+            <h3>Mountain Range</h3>
+            <svg class="target-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="mountain-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#87CEEB"/>
+                        <stop offset="70%" style="stop-color:#228B22"/>
+                        <stop offset="100%" style="stop-color:#8B4513"/>
+                    </linearGradient>
+                </defs>
+                <rect width="400" height="400" fill="#87CEEB"/>
+                <polygon points="0,400 80,200 160,250 240,150 320,180 400,120 400,400" fill="url(#mountain-grad)"/>
+                <polygon points="40,400 120,180 200,220 280,130 360,160 400,100 400,400" fill="#2F4F2F" opacity="0.7"/>
+                <circle cx="320" cy="80" r="25" fill="#FFD700" opacity="0.8"/>
+            </svg>
+            <p><strong>Tags:</strong> mountains, landscape, peaks, nature, elevation, scenic</p>
+            <button class="copy-url" onclick="copyToClipboard('/static/target2.svg')">Copy URL</button>
+        </div>
+
+        <!-- Target 3: Circuit Board -->
+        <div class="target-card">
+            <h3>Circuit Board</h3>
+            <svg class="target-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="400" fill="#2c5530"/>
+                <g stroke="#00ff41" stroke-width="3" fill="none">
+                    <line x1="50" y1="50" x2="350" y2="50"/>
+                    <line x1="50" y1="50" x2="50" y2="350"/>
+                    <line x1="150" y1="50" x2="150" y2="200"/>
+                    <line x1="150" y1="200" x2="300" y2="200"/>
+                    <line x1="300" y1="200" x2="300" y2="350"/>
+                    <line x1="50" y1="150" x2="200" y2="150"/>
+                    <line x1="200" y1="150" x2="200" y2="300"/>
+                    <line x1="200" y1="300" x2="350" y2="300"/>
+                </g>
+                <g fill="#00ff41">
+                    <circle cx="150" cy="50" r="8"/>
+                    <circle cx="50" cy="150" r="8"/>
+                    <circle cx="200" cy="150" r="8"/>
+                    <circle cx="150" cy="200" r="8"/>
+                    <circle cx="300" cy="200" r="8"/>
+                    <circle cx="200" cy="300" r="8"/>
+                    <circle cx="300" cy="350" r="8"/>
+                </g>
+                <rect x="100" y="100" width="40" height="20" fill="#00ff41"/>
+                <rect x="250" y="250" width="30" height="30" fill="#00ff41"/>
+            </svg>
+            <p><strong>Tags:</strong> technology, circuits, electronic, digital, modern, complex</p>
+            <button class="copy-url" onclick="copyToClipboard('/static/target3.svg')">Copy URL</button>
+        </div>
+
+        <!-- Target 4: Wave Pattern -->
+        <div class="target-card">
+            <h3>Wave Pattern</h3>
+            <svg class="target-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="wave-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#3498db"/>
+                        <stop offset="50%" style="stop-color:#2980b9"/>
+                        <stop offset="100%" style="stop-color:#1abc9c"/>
+                    </linearGradient>
+                </defs>
+                <rect width="400" height="400" fill="#ecf0f1"/>
+                <g fill="url(#wave-grad)" opacity="0.8">
+                    <path d="M0,200 Q100,150 200,200 T400,200 L400,400 L0,400 Z"/>
+                    <path d="M0,250 Q100,200 200,250 T400,250 L400,400 L0,400 Z" opacity="0.7"/>
+                    <path d="M0,300 Q100,250 200,300 T400,300 L400,400 L0,400 Z" opacity="0.5"/>
+                </g>
+            </svg>
+            <p><strong>Tags:</strong> waves, fluid, ocean, motion, rhythm, flowing</p>
+            <button class="copy-url" onclick="copyToClipboard('/static/target4.svg')">Copy URL</button>
+        </div>
+
+        <!-- Target 5: Mandala -->
+        <div class="target-card">
+            <h3>Mandala</h3>
+            <svg class="target-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="400" fill="#fdf6e3"/>
+                <g transform="translate(200,200)">
+                    <circle r="150" fill="none" stroke="#8e44ad" stroke-width="2"/>
+                    <circle r="100" fill="none" stroke="#e74c3c" stroke-width="2"/>
+                    <circle r="50" fill="none" stroke="#f39c12" stroke-width="2"/>
+                    <g stroke="#2c3e50" stroke-width="1">
+                        <line x1="-150" y1="0" x2="150" y2="0"/>
+                        <line x1="0" y1="-150" x2="0" y2="150"/>
+                        <line x1="-106" y1="-106" x2="106" y2="106"/>
+                        <line x1="106" y1="-106" x2="-106" y2="106"/>
+                    </g>
+                    <g fill="#9b59b6">
+                        <circle cx="75" cy="0" r="10"/>
+                        <circle cx="-75" cy="0" r="10"/>
+                        <circle cx="0" cy="75" r="10"/>
+                        <circle cx="0" cy="-75" r="10"/>
+                        <circle cx="53" cy="53" r="8"/>
+                        <circle cx="-53" cy="53" r="8"/>
+                        <circle cx="53" cy="-53" r="8"/>
+                        <circle cx="-53" cy="-53" r="8"/>
+                    </g>
+                </g>
+            </svg>
+            <p><strong>Tags:</strong> mandala, symmetry, spiritual, geometric, centered, balance</p>
+            <button class="copy-url" onclick="copyToClipboard('/static/target5.svg')">Copy URL</button>
+        </div>
+
+        <!-- Target 6: Abstract Tree -->
+        <div class="target-card">
+            <h3>Abstract Tree</h3>
+            <svg class="target-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <radialGradient id="tree-grad" cx="50%" cy="100%" r="80%">
+                        <stop offset="0%" style="stop-color:#27ae60"/>
+                        <stop offset="70%" style="stop-color:#2ecc71"/>
+                        <stop offset="100%" style="stop-color:#58d68d"/>
+                    </radialGradient>
+                </defs>
+                <rect width="400" height="400" fill="#e8f5e8"/>
+                <rect x="180" y="250" width="40" height="150" fill="#8b4513"/>
+                <circle cx="200" cy="180" r="80" fill="url(#tree-grad)"/>
+                <circle cx="150" cy="150" r="50" fill="url(#tree-grad)" opacity="0.8"/>
+                <circle cx="250" cy="150" r="60" fill="url(#tree-grad)" opacity="0.8"/>
+                <circle cx="200" cy="120" r="40" fill="url(#tree-grad)" opacity="0.9"/>
+                <g fill="#f1c40f">
+                    <circle cx="160" cy="140" r="3"/>
+                    <circle cx="220" cy="160" r="3"/>
+                    <circle cx="190" cy="130" r="3"/>
+                    <circle cx="240" cy="170" r="3"/>
+                </g>
+            </svg>
+            <p><strong>Tags:</strong> tree, nature, organic, growth, life, branches</p>
+            <button class="copy-url" onclick="copyToClipboard('/static/target6.svg')">Copy URL</button>
+        </div>
+    </div>
+
+    <script>
+        function copyToClipboard(url) {
+            const fullUrl = window.location.origin + url;
+            navigator.clipboard.writeText(fullUrl).then(() => {
+                alert('URL copied to clipboard: ' + fullUrl);
+            });
+        }
+    </script>
+</body>
+</html>
