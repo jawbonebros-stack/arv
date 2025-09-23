@@ -1,0 +1,559 @@
+<!-- Feedback Collection Modal Component -->
+<div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title" id="feedbackModalLabel">
+                    <i data-lucide="message-circle"></i> Share Your Experience
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="feedbackForm">
+                    <input type="hidden" id="feedbackWorkflow" name="workflow">
+                    <input type="hidden" id="feedbackContext" name="context">
+                    
+                    <!-- Workflow Context Display -->
+                    <div class="alert alert-light border" id="workflowContext">
+                        <div class="d-flex align-items-center">
+                            <i data-lucide="activity" class="me-2"></i>
+                            <div>
+                                <strong id="workflowTitle">Workflow</strong>
+                                <div class="text-muted small" id="workflowDescription">Share your thoughts on this experience</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Overall Experience -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">How was your overall experience?</label>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">Poor</span>
+                            <span class="text-muted small">Excellent</span>
+                        </div>
+                        <div class="rating-stars" id="overallRating">
+                            <i class="star" data-rating="1" data-lucide="star"></i>
+                            <i class="star" data-rating="2" data-lucide="star"></i>
+                            <i class="star" data-rating="3" data-lucide="star"></i>
+                            <i class="star" data-rating="4" data-lucide="star"></i>
+                            <i class="star" data-rating="5" data-lucide="star"></i>
+                        </div>
+                        <input type="hidden" name="overall_rating" id="overallRatingValue">
+                    </div>
+
+                    <!-- Ease of Use -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">How easy was it to complete this task?</label>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">Very difficult</span>
+                            <span class="text-muted small">Very easy</span>
+                        </div>
+                        <div class="rating-stars" id="easeRating">
+                            <i class="star" data-rating="1" data-lucide="star"></i>
+                            <i class="star" data-rating="2" data-lucide="star"></i>
+                            <i class="star" data-rating="3" data-lucide="star"></i>
+                            <i class="star" data-rating="4" data-lucide="star"></i>
+                            <i class="star" data-rating="5" data-lucide="star"></i>
+                        </div>
+                        <input type="hidden" name="ease_rating" id="easeRatingValue">
+                    </div>
+
+                    <!-- Specific Feedback -->
+                    <div class="mb-4">
+                        <label for="feedbackText" class="form-label fw-bold">What went well? What could be improved?</label>
+                        <textarea class="form-control" id="feedbackText" name="feedback_text" rows="4" 
+                                  placeholder="Share your thoughts on what worked well and what could be better..."></textarea>
+                    </div>
+
+                    <!-- Feature Suggestions -->
+                    <div class="mb-4">
+                        <label for="suggestions" class="form-label fw-bold">Any feature suggestions or ideas?</label>
+                        <textarea class="form-control" id="suggestions" name="suggestions" rows="3" 
+                                  placeholder="What features would you like to see added or changed?"></textarea>
+                    </div>
+
+                    <!-- Quick Issues -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Did you encounter any of these issues?</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="issues" value="confusing_interface" id="issue1">
+                                    <label class="form-check-label" for="issue1">Confusing interface</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="issues" value="slow_loading" id="issue2">
+                                    <label class="form-check-label" for="issue2">Slow loading</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="issues" value="unclear_instructions" id="issue3">
+                                    <label class="form-check-label" for="issue3">Unclear instructions</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="issues" value="missing_features" id="issue4">
+                                    <label class="form-check-label" for="issue4">Missing features</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="issues" value="errors_bugs" id="issue5">
+                                    <label class="form-check-label" for="issue5">Errors or bugs</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="issues" value="other" id="issue6">
+                                    <label class="form-check-label" for="issue6">Other issues</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Permission -->
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="contact_ok" id="contactOk">
+                            <label class="form-check-label" for="contactOk">
+                                I'm open to being contacted about my feedback
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i data-lucide="x"></i> Skip for now
+                </button>
+                <button type="button" class="btn btn-primary" id="submitFeedback">
+                    <i data-lucide="send"></i> Send Feedback
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feedback Button (Floating) -->
+<div id="feedbackButton" class="feedback-float-btn" title="Share Feedback">
+    <i data-lucide="message-circle"></i>
+    <span class="feedback-fallback-text">💬</span>
+</div>
+
+<style>
+/* Star Rating Styles - Improved */
+.rating-stars {
+    display: flex;
+    gap: 8px;
+    margin: 12px 0;
+    align-items: center;
+}
+
+.rating-stars .star {
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    color: #dee2e6;
+    transition: all 0.2s ease;
+    stroke-width: 2;
+}
+
+.rating-stars .star:hover {
+    color: #ffd43b;
+    transform: scale(1.1);
+}
+
+.rating-stars .star.filled {
+    color: #ffc107;
+    fill: #ffc107;
+}
+
+.rating-stars .star.temp-fill {
+    color: #ffd43b;
+    fill: #ffd43b;
+}
+
+/* Form styling improvements */
+.form-label.fw-bold {
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+.form-control:focus {
+    border-color: #6c757d;
+    box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25);
+}
+
+.form-check-input:checked {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.modal-header.bg-light {
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-footer.bg-light {
+    border-top: 1px solid #dee2e6;
+}
+
+/* Loading spinner for submit button */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.spinner {
+    animation: spin 1s linear infinite;
+}
+
+/* Floating Feedback Button */
+.feedback-float-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 56px;
+    height: 56px;
+    background: #007bff;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.feedback-float-btn:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.feedback-float-btn i {
+    width: 24px;
+    height: 24px;
+}
+
+.feedback-float-btn .feedback-fallback-text {
+    display: none;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+/* Show fallback if icon fails to load */
+.feedback-float-btn:not(:has(svg)) .feedback-fallback-text {
+    display: block;
+}
+
+/* Form Enhancements */
+.form-check-input:checked {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.alert-light {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+@media (max-width: 768px) {
+    .feedback-float-btn {
+        bottom: 20px;
+        right: 20px;
+        width: 48px;
+        height: 48px;
+    }
+    
+    .feedback-float-btn i {
+        width: 20px;
+        height: 20px;
+    }
+}
+</style>
+
+<script>
+// Feedback Modal Functionality - Basic modal functions only
+// Note: Main feedback system initialization is handled in app.js
+document.addEventListener('DOMContentLoaded', function() {
+    const submitButton = document.getElementById('submitFeedback');
+    
+    // Star rating functionality - Fixed implementation
+    function initializeStarRatings() {
+        document.querySelectorAll('.rating-stars').forEach(container => {
+            const stars = container.querySelectorAll('.star');
+            const hiddenInput = container.parentElement.querySelector('input[type="hidden"]') || 
+                               container.querySelector('input[type="hidden"]');
+            
+            if (!hiddenInput) {
+                console.warn('Hidden input not found for star rating');
+                return;
+            }
+            
+            stars.forEach((star, index) => {
+                // Clear any existing listeners
+                star.replaceWith(star.cloneNode(true));
+            });
+            
+            // Re-get stars after cloning
+            const newStars = container.querySelectorAll('.star');
+            
+            newStars.forEach((star, index) => {
+                star.addEventListener('mouseenter', function() {
+                    // Temporary highlight on hover
+                    newStars.forEach((s, i) => {
+                        if (i <= index) {
+                            s.classList.add('temp-fill');
+                        } else {
+                            s.classList.remove('temp-fill');
+                        }
+                    });
+                });
+                
+                star.addEventListener('mouseleave', function() {
+                    // Remove temporary highlight
+                    newStars.forEach(s => s.classList.remove('temp-fill'));
+                });
+                
+                star.addEventListener('click', function() {
+                    const rating = parseInt(this.dataset.rating);
+                    hiddenInput.value = rating;
+                    
+                    // Update visual state
+                    newStars.forEach((s, i) => {
+                        if (i < rating) {
+                            s.classList.add('filled');
+                            s.classList.remove('temp-fill');
+                        } else {
+                            s.classList.remove('filled', 'temp-fill');
+                        }
+                    });
+                });
+            });
+        });
+    }
+    
+    // Initialize star ratings
+    initializeStarRatings();
+    
+    // Submit feedback
+    if (submitButton) {
+        submitButton.addEventListener('click', function() {
+            submitFeedback();
+        });
+    }
+    
+    // Re-initialize Lucide icons and star ratings when modal is shown
+    document.getElementById('feedbackModal').addEventListener('shown.bs.modal', function() {
+        if (typeof window.initializeLucideIcons === 'function') {
+            window.initializeLucideIcons();
+        }
+        // Re-initialize star ratings to ensure they work
+        setTimeout(() => {
+            initializeStarRatings();
+        }, 100);
+    });
+});
+
+function showFeedbackModal(workflow = null, context = null) {
+    console.log('Showing feedback modal');
+    
+    // Auto-detect workflow if not provided
+    if (!workflow) {
+        workflow = detectCurrentWorkflow();
+    }
+    
+    // Set workflow context
+    document.getElementById('feedbackWorkflow').value = workflow.name;
+    document.getElementById('feedbackContext').value = context || workflow.context;
+    document.getElementById('workflowTitle').textContent = workflow.title;
+    document.getElementById('workflowDescription').textContent = workflow.description;
+    
+    // Show modal
+    const modalElement = document.getElementById('feedbackModal');
+    if (modalElement) {
+        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        modal.show();
+    } else {
+        console.error('Feedback modal element not found');
+    }
+}
+
+function detectCurrentWorkflow() {
+    const path = window.location.pathname;
+    
+    if (path.includes('/wizard')) {
+        return {
+            name: 'trial_creation',
+            title: 'Trial Creation Wizard',
+            description: 'Creating a new prediction trial',
+            context: 'trial_wizard'
+        };
+    } else if (path.includes('/arv-wizard')) {
+        return {
+            name: 'arv_session',
+            title: 'ARV Session Wizard',
+            description: 'Recording sensory impressions for trial outcomes',
+            context: 'arv_wizard'
+        };
+    } else if (path.includes('/trials/') && path.includes('/edit')) {
+        return {
+            name: 'trial_editing',
+            title: 'Trial Editing',
+            description: 'Modifying trial configuration',
+            context: 'trial_edit'
+        };
+    } else if (path.includes('/trials/') && !path.includes('/edit')) {
+        return {
+            name: 'trial_detail',
+            title: 'Trial Management',
+            description: 'Viewing and interacting with trial details',
+            context: 'trial_detail'
+        };
+    } else if (path.includes('/admin')) {
+        return {
+            name: 'admin_panel',
+            title: 'Admin Panel',
+            description: 'Managing platform administration tasks',
+            context: 'admin'
+        };
+    } else if (path === '/' || path === '/dashboard') {
+        return {
+            name: 'dashboard',
+            title: 'Dashboard',
+            description: 'Browsing trials and platform overview',
+            context: 'dashboard'
+        };
+    } else {
+        return {
+            name: 'general',
+            title: 'Platform Experience',
+            description: 'General platform usage',
+            context: 'general'
+        };
+    }
+}
+
+function submitFeedback() {
+    const form = document.getElementById('feedbackForm');
+    const submitButton = document.getElementById('submitFeedback');
+    
+    // Disable submit button during submission
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i data-lucide="loader" class="spinner"></i> Submitting...';
+    
+    // Validate required fields
+    const overallRating = document.getElementById('overallRatingValue').value;
+    const easeRating = document.getElementById('easeRatingValue').value;
+    
+    if (!overallRating || !easeRating) {
+        alert('Please provide both ratings before submitting.');
+        submitButton.disabled = false;
+        submitButton.innerHTML = '<i data-lucide="send"></i> Submit Feedback';
+        window.initializeLucideIcons();
+        return;
+    }
+    
+    const formData = new FormData(form);
+    
+    // Collect checked issues
+    const issues = [];
+    form.querySelectorAll('input[name="issues"]:checked').forEach(checkbox => {
+        issues.push(checkbox.value);
+    });
+    formData.set('issues', JSON.stringify(issues));
+    
+    // Add timestamp and page info
+    formData.append('timestamp', new Date().toISOString());
+    formData.append('page_url', window.location.href);
+    formData.append('user_agent', navigator.userAgent);
+    
+    // Submit to backend
+    fetch('/api/feedback', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Show success and close modal
+            showFeedbackSuccess();
+            const modalInstance = bootstrap.Modal.getInstance(document.getElementById('feedbackModal'));
+            if (modalInstance) {
+                modalInstance.hide();
+            }
+            
+            // Reset form
+            resetFeedbackForm();
+        } else {
+            alert('Error submitting feedback: ' + (data.message || 'Please try again'));
+        }
+    })
+    .catch(error => {
+        console.error('Feedback submission error:', error);
+        alert('Error submitting feedback: ' + error.message + '. Please try again.');
+    })
+    .finally(() => {
+        // Re-enable submit button
+        submitButton.disabled = false;
+        submitButton.innerHTML = '<i data-lucide="send"></i> Submit Feedback';
+        window.initializeLucideIcons();
+    });
+}
+
+function resetFeedbackForm() {
+    const form = document.getElementById('feedbackForm');
+    form.reset();
+    
+    // Clear star ratings
+    document.querySelectorAll('.star').forEach(star => {
+        star.classList.remove('filled', 'temp-fill');
+    });
+    
+    // Clear hidden inputs
+    document.querySelectorAll('input[type="hidden"]').forEach(input => {
+        if (input.name.includes('rating')) {
+            input.value = '';
+        }
+    });
+}
+
+function showFeedbackSuccess() {
+    // Show temporary success message
+    const successAlert = document.createElement('div');
+    successAlert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+    successAlert.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+    successAlert.innerHTML = `
+        <i data-lucide="check-circle"></i>
+        <strong>Thank you!</strong> Your feedback helps us improve ARVLab.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(successAlert);
+    
+    // Initialize Lucide icons
+    if (typeof window.initializeLucideIcons === 'function') {
+        window.initializeLucideIcons();
+    }
+    
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+        if (successAlert.parentNode) {
+            successAlert.remove();
+        }
+    }, 4000);
+}
+
+// Workflow-specific feedback triggers
+function triggerWorkflowFeedback(workflowName, context = null, delay = 2000) {
+    setTimeout(() => {
+        // Only show if user is still on the same page
+        if (detectCurrentWorkflow().name === workflowName) {
+            showFeedbackModal(detectCurrentWorkflow(), context);
+        }
+    }, delay);
+}
+</script>
