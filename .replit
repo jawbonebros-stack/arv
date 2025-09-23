@@ -1,0 +1,80 @@
+modules = ["python-3.11", "nodejs-20", "python3", "postgresql-16"]
+[agent]
+expertMode = true
+
+[nix]
+channel = "stable-25_05"
+packages = ["freetype", "glibcLocales", "lcms2", "libimagequant", "libjpeg", "libjpeg_turbo", "libpng", "libtiff", "libwebp", "libxcrypt", "openjpeg", "sqlite", "tcl", "tk", "which", "zlib"]
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "FastAPI Server"
+
+[[workflows.workflow]]
+name = "FastAPI Server"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "uvicorn main:app --host 0.0.0.0 --port 5000 --reload"
+waitForPort = 5000
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 32809
+externalPort = 8000
+
+[[ports]]
+localPort = 33855
+externalPort = 5173
+
+[[ports]]
+localPort = 33897
+externalPort = 5000
+
+[[ports]]
+localPort = 35963
+externalPort = 3003
+
+[[ports]]
+localPort = 38481
+externalPort = 6800
+
+[[ports]]
+localPort = 40597
+externalPort = 3002
+
+[[ports]]
+localPort = 42757
+externalPort = 3001
+
+[[ports]]
+localPort = 44807
+externalPort = 4200
+
+[[ports]]
+localPort = 45963
+externalPort = 8008
+
+[[ports]]
+localPort = 46099
+externalPort = 3000
+
+[[ports]]
+localPort = 46225
+externalPort = 6000
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000"]

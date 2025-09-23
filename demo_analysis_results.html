@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Analysis Results - ARVLab</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .analysis-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .target-card {
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        .progress-bar {
+            height: 25px;
+            border-radius: 12px;
+        }
+        .category-score {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .recommended-badge {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        .share-buttons {
+            gap: 0.5rem;
+        }
+        .btn-share {
+            border-radius: 25px;
+            padding: 0.5rem 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container my-5">
+        <!-- Analysis Header -->
+        <div class="analysis-header text-center">
+            <h1 class="mb-3">🧠 AI Analysis Results</h1>
+            <p class="lead mb-0">Your viewing session has been analyzed using advanced AI technology</p>
+            <div class="mt-3">
+                <span class="badge bg-success fs-6">6 Descriptors Analyzed</span>
+                <span class="badge bg-info fs-6 ms-2">High Confidence</span>
+            </div>
+        </div>
+
+        <!-- Recommended Target -->
+        <div class="target-card border-success">
+            <div class="card-header bg-success text-white text-center">
+                <h3 class="mb-0">🎯 Recommended Target</h3>
+                <div class="recommended-badge mt-2">87.5% Overall Match</div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <div class="bg-light rounded p-3 mb-3">
+                            <h5>Target Image</h5>
+                            <div class="bg-secondary rounded" style="height: 150px; display: flex; align-items: center; justify-content: center;">
+                                <span class="text-white">Target A Image</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <h5 class="mb-3">Sensory Category Breakdown</h5>
+                        
+                        <div class="category-score">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><strong>🎨 Colors</strong></span>
+                                <span class="fw-bold">92%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-success" style="width: 92%"></div>
+                            </div>
+                            <small class="text-muted">Excellent match for "bright red" descriptors</small>
+                        </div>
+
+                        <div class="category-score">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><strong>👁️ Visual</strong></span>
+                                <span class="fw-bold">95%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-success" style="width: 95%"></div>
+                            </div>
+                            <small class="text-muted">Outstanding shape perception accuracy</small>
+                        </div>
+
+                        <div class="category-score">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><strong>⚡ Energy</strong></span>
+                                <span class="fw-bold">88%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-success" style="width: 88%"></div>
+                            </div>
+                            <small class="text-muted">Strong correlation with "warm energy"</small>
+                        </div>
+
+                        <div class="category-score">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><strong>🤚 Tactile</strong></span>
+                                <span class="fw-bold">85%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-success" style="width: 85%"></div>
+                            </div>
+                            <small class="text-muted">Good match for texture descriptions</small>
+                        </div>
+
+                        <div class="category-score">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><strong>👃 Smell</strong></span>
+                                <span class="fw-bold">82%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-info" style="width: 82%"></div>
+                            </div>
+                            <small class="text-muted">Moderate correlation with olfactory impressions</small>
+                        </div>
+
+                        <div class="category-score">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><strong>🔊 Sound</strong></span>
+                                <span class="fw-bold">80%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-info" style="width: 80%"></div>
+                            </div>
+                            <small class="text-muted">Good auditory impression alignment</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 p-3 bg-light rounded">
+                    <h6><strong>AI Reasoning:</strong></h6>
+                    <p class="mb-0">Strong correlation found between viewing descriptions and target image. The descriptors "bright red", "round", and "warm energy" align exceptionally well with target characteristics. Particularly notable is the 95% visual match indicating accurate shape perception and the 92% color accuracy demonstrating excellent sensory reception.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Other Targets Comparison -->
+        <div class="target-card">
+            <div class="card-header">
+                <h4 class="mb-0">📊 Comparison with Other Targets</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Target B</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Overall Match</span>
+                            <span class="fw-bold">62.3%</span>
+                        </div>
+                        <div class="progress mb-3">
+                            <div class="progress-bar bg-warning" style="width: 62.3%"></div>
+                        </div>
+                        <small class="text-muted">Moderate correlation with some matching elements, particularly in tactile and sound categories.</small>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Target C</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Overall Match</span>
+                            <span class="fw-bold">45.8%</span>
+                        </div>
+                        <div class="progress mb-3">
+                            <div class="progress-bar bg-danger" style="width: 45.8%"></div>
+                        </div>
+                        <small class="text-muted">Lower correlation across most sensory categories, with significant divergence in visual descriptors.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Summary -->
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="mb-3">📈 Analysis Summary</h5>
+                <p class="lead">AI analysis of your viewing session shows strongest correlation with <strong>Target A</strong> at <strong>87.5% overall match</strong>. Your sensory impressions demonstrate particularly strong accuracy in visual and color perception categories.</p>
+                
+                <div class="mt-4">
+                    <h6>Share Your Results</h6>
+                    <div class="d-flex justify-content-center share-buttons">
+                        <button class="btn btn-primary btn-share">
+                            📘 Share on Facebook
+                        </button>
+                        <button class="btn btn-info btn-share">
+                            🐦 Tweet Results
+                        </button>
+                        <button class="btn btn-success btn-share">
+                            📱 Copy Link
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <a href="/trials" class="btn btn-outline-primary">Back to Tasks</a>
+                    <a href="/trials/5" class="btn btn-primary ms-2">View Task Details</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

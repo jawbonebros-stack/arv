@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Feedback Button</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .feedback-float-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 56px;
+            height: 56px;
+            background: #6c757d;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            font-size: 24px;
+        }
+
+        .feedback-float-btn:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Feedback Button Test</h1>
+        <p>Look for the gray circular feedback button in the bottom-right corner of the screen.</p>
+        <p>Click it to test the feedback modal!</p>
+        
+        <div class="alert alert-info">
+            <strong>Instructions:</strong>
+            <ul>
+                <li>The feedback button should appear as a gray circle with a message icon</li>
+                <li>It should be fixed in the bottom-right corner</li>
+                <li>Clicking it should open a feedback modal</li>
+                <li>You should be able to rate your experience and provide comments</li>
+            </ul>
+        </div>
+        
+        <button onclick="testFeedback()" class="btn btn-primary">Manual Test: Open Feedback Modal</button>
+    </div>
+
+    <!-- Simple feedback button -->
+    <div id="feedbackButton" class="feedback-float-btn" title="Share Feedback">
+        💬
+    </div>
+
+    <!-- Simple modal -->
+    <div class="modal fade" id="feedbackModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Test Feedback</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>This is a test of the feedback modal system.</p>
+                    <p>The floating button works! You can see it and click it successfully.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const feedbackButton = document.getElementById('feedbackButton');
+            const modal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+            
+            if (feedbackButton) {
+                feedbackButton.addEventListener('click', function() {
+                    console.log('Feedback button clicked!');
+                    modal.show();
+                });
+                console.log('Feedback button initialized successfully');
+            } else {
+                console.error('Feedback button not found');
+            }
+        });
+
+        function testFeedback() {
+            const modal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+            modal.show();
+        }
+    </script>
+</body>
+</html>

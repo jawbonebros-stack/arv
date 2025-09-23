@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete ARVLab Workflow Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .step-header {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+        .demo-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .success-highlight {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        .arv-form {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .analysis-result {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 5px solid #28a745;
+        }
+        .progress-demo {
+            height: 25px;
+            border-radius: 12px;
+        }
+        .earning-badge {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #333;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container my-5">
+        <div class="step-header text-center">
+            <h1>🎯 Complete ARVLab Workflow Demonstration</h1>
+            <p class="lead mb-0">From Target Impressions to AI Analysis Results</p>
+        </div>
+
+        <!-- Step 1: Recording Impressions -->
+        <div class="demo-section">
+            <h2>1️⃣ Recording Target Impressions</h2>
+            <p>User enters their sensory impressions in the ARV wizard:</p>
+            
+            <div class="arv-form">
+                <h5 class="mb-3">Target Impressions</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label"><strong>🎨 Colors</strong></label>
+                        <div class="form-control bg-light">bright red, vibrant crimson, warm orange tones</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label"><strong>🤚 Tactile</strong></label>
+                        <div class="form-control bg-light">smooth surface, silky texture, warm to touch</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label"><strong>⚡ Energy</strong></label>
+                        <div class="form-control bg-light">positive vibration, warm energy, uplifting</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label"><strong>👃 Smell</strong></label>
+                        <div class="form-control bg-light">sweet fragrance, floral notes, fresh</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label"><strong>🔊 Sound</strong></label>
+                        <div class="form-control bg-light">gentle hum, peaceful quiet, soft ambient</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label"><strong>👁️ Visual</strong></label>
+                        <div class="form-control bg-light">round shapes, curved lines, circular patterns</div>
+                    </div>
+                </div>
+                
+                <div class="success-highlight text-center">
+                    ✅ <strong>Target Impressions Saved Successfully!</strong><br>
+                    6 descriptors recorded across all sensory categories
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: AI Analysis Processing -->
+        <div class="demo-section">
+            <h2>2️⃣ AI Analysis Processing</h2>
+            <p>Advanced AI system analyzes impressions against target images:</p>
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <ul class="list-group">
+                        <li class="list-group-item">🧠 Comparing sensory descriptions to target characteristics</li>
+                        <li class="list-group-item">📊 Computing accuracy percentages for each category</li>
+                        <li class="list-group-item">🎯 Identifying best matching target</li>
+                        <li class="list-group-item">📝 Generating detailed reasoning and recommendations</li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <div class="success-highlight text-center">
+                        ⚡ <strong>Analysis Complete!</strong><br>
+                        <span class="earning-badge">High Confidence Result</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Results Display -->
+        <div class="demo-section">
+            <h2>3️⃣ Analysis Results</h2>
+            <p>Comprehensive breakdown showing accuracy across all sensory categories:</p>
+            
+            <div class="analysis-result">
+                <div class="text-center mb-4">
+                    <h3 class="text-success">🎯 Recommended Target: Target A</h3>
+                    <div class="earning-badge">87.5% Overall Match</div>
+                </div>
+                
+                <h5 class="mb-3">📈 Sensory Category Breakdown:</h5>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><strong>👁️ Visual</strong></span>
+                            <span class="fw-bold text-success">95%</span>
+                        </div>
+                        <div class="progress progress-demo">
+                            <div class="progress-bar bg-success" style="width: 95%"></div>
+                        </div>
+                        <small class="text-muted">Outstanding shape perception accuracy</small>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><strong>🎨 Colors</strong></span>
+                            <span class="fw-bold text-success">92%</span>
+                        </div>
+                        <div class="progress progress-demo">
+                            <div class="progress-bar bg-success" style="width: 92%"></div>
+                        </div>
+                        <small class="text-muted">Excellent "bright red" correlation</small>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><strong>⚡ Energy</strong></span>
+                            <span class="fw-bold text-success">88%</span>
+                        </div>
+                        <div class="progress progress-demo">
+                            <div class="progress-bar bg-success" style="width: 88%"></div>
+                        </div>
+                        <small class="text-muted">Strong "warm energy" match</small>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><strong>🤚 Tactile</strong></span>
+                            <span class="fw-bold text-success">85%</span>
+                        </div>
+                        <div class="progress progress-demo">
+                            <div class="progress-bar bg-success" style="width: 85%"></div>
+                        </div>
+                        <small class="text-muted">Good texture description alignment</small>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><strong>👃 Smell</strong></span>
+                            <span class="fw-bold text-info">82%</span>
+                        </div>
+                        <div class="progress progress-demo">
+                            <div class="progress-bar bg-info" style="width: 82%"></div>
+                        </div>
+                        <small class="text-muted">Good olfactory impression correlation</small>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><strong>🔊 Sound</strong></span>
+                            <span class="fw-bold text-info">80%</span>
+                        </div>
+                        <div class="progress progress-demo">
+                            <div class="progress-bar bg-info" style="width: 80%"></div>
+                        </div>
+                        <small class="text-muted">Good auditory impression match</small>
+                    </div>
+                </div>
+                
+                <div class="mt-4 p-3 bg-light rounded">
+                    <h6><strong>🧠 AI Reasoning:</strong></h6>
+                    <p class="mb-0">Strong correlation found between viewing descriptions and target image. The descriptors "bright red", "round", and "warm energy" align exceptionally well with target characteristics. Particularly notable is the 95% visual match indicating accurate shape perception and the 92% color accuracy demonstrating excellent sensory reception.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Earning Potential -->
+        <div class="demo-section">
+            <h2>4️⃣ Earning Potential & Social Sharing</h2>
+            <p>High-accuracy results demonstrate ARV skills with income potential:</p>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card border-warning">
+                        <div class="card-body text-center">
+                            <h5 class="text-warning">💰 Income Opportunities</h5>
+                            <ul class="list-unstyled">
+                                <li>📈 Stock market predictions</li>
+                                <li>🎲 Lottery number analysis</li>
+                                <li>⚽ Sports outcome forecasting</li>
+                                <li>🔮 Professional consulting</li>
+                            </ul>
+                            <div class="earning-badge">87.5% accuracy = High skill level</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border-info">
+                        <div class="card-body text-center">
+                            <h5 class="text-info">📱 Share Your Success</h5>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-primary">📘 Share on Facebook</button>
+                                <button class="btn btn-info">🐦 Tweet Results</button>
+                                <button class="btn btn-success">📋 Copy Results Link</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="success-highlight text-center">
+            <h3>✨ Workflow Complete!</h3>
+            <p class="mb-2">User has successfully demonstrated remote viewing accuracy with scientific-level precision.</p>
+            <p class="mb-0">Ready to monetize ARV skills through the platform's earning opportunities!</p>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="/trials" class="btn btn-primary btn-lg me-2">Start Your Own Task</a>
+            <a href="/trials/5" class="btn btn-outline-primary btn-lg">View Live Demo</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
